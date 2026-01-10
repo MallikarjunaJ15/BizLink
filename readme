@@ -1,0 +1,47 @@
+==========================
+🚀 Git + GitHub Cheat Sheet
+==========================
+
+## 🔹 1. Initialize Git in a new project
+
+git init
+
+## 🔹 2. Stage files for commit
+
+git add . # Stage all files
+git add <filename> # Stage specific file
+
+## 🔹 3. Commit staged files
+
+git commit -m "Your message" # Create a snapshot
+
+## 🔹 4. Connect to GitHub
+
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+
+# (Verify with)
+
+git remote -v
+
+## 🔹 5. Push to GitHub (First Time)
+
+git push -u origin main # Use 'main' or 'master' depending on branch
+
+## 🔹 6. Push to GitHub (Next Time)
+
+git push
+
+## 🔹 7. Common Commands
+
+git status # Check what's changed
+git log --oneline # View commit history
+git branch # See branches
+git checkout -b new-branch # Create + switch to a new branch
+git switch main # Switch back to main
+git pull # Pull latest from remote
+
+## 🔹 8. Fix Mistakes
+
+git reset HEAD <file> # Unstage a file
+git reset --soft HEAD~1 # Undo last commit (keeps changes)
+git restore <file> # Discard changes in file
