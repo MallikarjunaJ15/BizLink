@@ -35,6 +35,7 @@ const Step4ReviewSubmit = ({ formData, prev }) => {
     fd.append("landmark", formData.address?.landmark || "");
     fd.append("pincode", formData.address?.pincode || "");
     fd.append("phoneNumber", formData.phoneNumber);
+    fd.append("listingType", formData.listingType);
     registerBusiness(fd);
     console.log(formData);
   };

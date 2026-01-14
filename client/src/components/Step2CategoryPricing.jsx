@@ -1,8 +1,9 @@
 import React from "react";
 import { Input } from "./ui/input";
-import { ArrowLeft, ArrowRight, DollarSign, IndianRupee, Tag } from "lucide-react";
+import { ArrowLeft, ArrowRight, IndianRupee, Tag } from "lucide-react";
 
 const Step2CategoryPricing = ({ formData, setFormData, next, prev }) => {
+  console.log(formData);
   return (
     <div className="w-full bg-white rounded-3xl shadow-xl p-8 border-2 border-[#8d99ae]/10">
       <div className="flex items-center gap-3 mb-6">
@@ -12,6 +13,29 @@ const Step2CategoryPricing = ({ formData, setFormData, next, prev }) => {
         <h2 className="text-2xl font-bold text-[#2b2d42]">
           Category & Pricing
         </h2>
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-[#2b2d42] mb-2">
+          Want to
+        </label>
+        {/* <div className="rounded-[0.50rem] border border-[#d90429ff] bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 shadow-md   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d90429ff]  transition-all duration-150 ">
+        </div> */}
+        <select
+          value={formData.listingType}
+          onChange={(e) =>
+            setFormData({ ...formData, listingType: e.target.value })
+          }
+          name=""
+          id=""
+          className=" w-full rounded-[0.50rem] border border-[#d90429ff] bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 shadow-md   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d90429ff]  transition-all duration-150"
+        >
+          <option value="">Select Listing Type</option>
+          <option value="SELL_BUSINESS">SELL_BUSINESS</option>
+          <option value="RENT_BUSINESS">RENT_BUSINESS</option>
+          <option value="FRANCHISE">FRANCHISE</option>
+          <option value="SELL_ASSETS">SELL_ASSETS</option>
+        </select>
       </div>
 
       <div className="mb-6">
@@ -33,7 +57,7 @@ const Step2CategoryPricing = ({ formData, setFormData, next, prev }) => {
 
       <div className="mb-6">
         <label className="block text-sm font-semibold text-[#2b2d42] mb-2">
-       Price
+          Price
         </label>
         <div className="relative">
           <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8d99ae]" />
@@ -48,7 +72,7 @@ const Step2CategoryPricing = ({ formData, setFormData, next, prev }) => {
           />
         </div>
         <p className="text-xs text-[#8d99ae] mt-2">
-          Enter the selling  or renting price
+          Enter the selling or renting price
         </p>
       </div>
 

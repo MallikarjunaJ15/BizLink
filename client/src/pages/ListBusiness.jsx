@@ -20,6 +20,7 @@ const ListBusiness = () => {
       pincode: "",
     },
     phoneNumber: "",
+    listingType: "",
   });
 
   const next = () => setSteps((s) => s + 1);
