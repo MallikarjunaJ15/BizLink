@@ -9,6 +9,7 @@ import ListBusiness from "./pages/ListBusiness";
 import BusinessDescription from "./pages/BusinessDescription";
 import MyProfile from "./pages/MyProfile";
 import EditBusiness from "./pages/EditBusiness";
+import Search from "./components/Search";
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/login", element: <Login /> },
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
     path: "/edit/:id",
     element: <EditBusiness />,
   },
+  {
+    path:"/search",
+    element:<Search/>
+  }
 ]);
 const App = () => {
   const { data, isLoading, isError } = useLoadMeQuery();

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Search,
   TrendingUp,
@@ -15,6 +15,31 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const [inputData, SetInputData] = useState({
+    Businessname: "",
+    location: "",
+    category: "",
+  });
+  const search = () => {
+    const params = new URLSearchParams();
+
+    if (inputData.Businessname) {
+      params.append("Businessname", inputData.Businessname);
+    }
+
+    if (inputData.location) {
+      params.append("location", inputData.location);
+    }
+
+    if (inputData.category && inputData.category !== "Select Category") {
+      params.append("category", inputData.category);
+    }
+
+    navigate(`/search?${params.toString()}`);
+  };
+
+  const navigate = useNavigate();
+
   const stats = [
     { icon: Building2, value: "500+", label: "Active Listings" },
     { icon: Users, value: "10K+", label: "Happy Customers" },
@@ -28,7 +53,6 @@ const HeroSection = () => {
     "Quick response time",
   ];
 
-  const navigate = useNavigate();
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-[#edf2f4] via-white to-[#edf2f4] font-display">
       <div className="absolute top-0 right-0 w-96 h-96 bg-[#d90429]/5 rounded-full blur-3xl -z-10" />
@@ -121,14 +145,19 @@ const HeroSection = () => {
                 </h3>
               </div>
 
-            
               <div className="space-y-4">
-          
                 <div className="relative rounded-2xl">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8d99ae]" />
                   <input
                     type="text"
                     placeholder="What business are you looking for?"
+                    value={inputData.Businessname}
+                    onChange={(e) =>
+                      SetInputData({
+                        ...inputData,
+                        Businessname: e.target.value,
+                      })
+                    }
                     className="w-full pl-12 pr-4 py-4 border-2 border-[#8d99ae]/30 rounded-2xl text-[#2b2d42] placeholder:text-[#8d99ae] focus:outline-none focus:ring-2 focus:ring-[#d90429] focus:border-[#d90429] transition-all"
                   />
                 </div>
@@ -138,22 +167,39 @@ const HeroSection = () => {
                   <input
                     type="text"
                     placeholder="Enter location (city, area)"
+                    value={inputData.location}
+                    onChange={(e) =>
+                      SetInputData({
+                        ...inputData,
+                        location: e.target.value,
+                      })
+                    }
                     className="w-full pl-12 pr-4 py-4 border-2 border-[#8d99ae]/30 rounded-2xl text-[#2b2d42] placeholder:text-[#8d99ae] focus:outline-none focus:ring-2 focus:ring-[#d90429] focus:border-[#d90429] transition-all"
                   />
                 </div>
 
-            
-                <select className="w-full px-4 py-4 border-2 border-[#8d99ae]/30 rounded-2xl text-[#2b2d42] focus:outline-none focus:ring-2 focus:ring-[#d90429] focus:border-[#d90429] transition-all">
+                <select
+                  value={inputData.category}
+                  onChange={(e) =>
+                    SetInputData({
+                      ...inputData,
+                      category: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-4 border-2 border-[#8d99ae]/30 rounded-2xl text-[#2b2d42] focus:outline-none focus:ring-2 focus:ring-[#d90429] focus:border-[#d90429] transition-all"
+                >
                   <option>Select Category</option>
-                  <option>Restaurant & Food</option>
-                  <option>Retail Store</option>
-                  <option>IT Services</option>
-                  <option>Manufacturing</option>
-                  <option>Healthcare</option>
+                  <option value={"Resaurant food"}>Restaurant & Food</option>
+                  <option value={"Store"}>Retail Store</option>
+                  <option value={"IT"}>IT Services</option>
+                  <option value={"Manufacturing"}>Manufacturing</option>
+                  <option value={"medical"}>Healthcare</option>
                 </select>
 
-             
-                <button className="w-full bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                <button
+                  onClick={search}
+                  className="w-full bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                >
                   Search Businesses
                   <ArrowRight className="w-5 h-5" />
                 </button>
@@ -172,12 +218,11 @@ const HeroSection = () => {
                       >
                         {tag}
                       </button>
-                    )
+                    ),
                   )}
                 </div>
               </div>
             </div>
-
 
             <div className="absolute -top-12 -right-6 bg-white rounded-2xl shadow-xl p-4 border-2 border-[#8d99ae]/10 animate-float z-0">
               <div className="flex items-center gap-3">
@@ -209,7 +254,6 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-
 
       <style jsx>{`
         @keyframes float {

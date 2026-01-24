@@ -58,8 +58,10 @@ const BusinessDescription = () => {
     <div className="min-h-screen bg-[#edf2f4] font-display">
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-200 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <button  onClick={()=>navigate(-1)}
-          className="group flex items-center gap-2 text-gray-600 hover:text-[#d90429] transition-colors font-medium">
+          <button
+            onClick={() => navigate(-1)}
+            className="group flex items-center gap-2 text-gray-600 hover:text-[#d90429] transition-colors font-medium"
+          >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             Back to Listings
           </button>
@@ -70,8 +72,8 @@ const BusinessDescription = () => {
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-[#8d99ae]/10">
           <div className="relative h-[400px] lg:h-[500px]">
             <img
-              src={business.BusinessThumbnail}
-              alt={business.Businessname}
+              src={business?.BusinessThumbnail}
+              alt={business?.Businessname}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#2b2d42]/80 via-[#2b2d42]/30 to-transparent" />
@@ -84,24 +86,24 @@ const BusinessDescription = () => {
             <div className="absolute top-6 left-6">
               <span className="inline-flex items-center gap-2 bg-[#d90429] text-[#edf2f4] px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                 <Building2 className="w-4 h-4" />
-                {business.category}
+                {business?.category}
               </span>
             </div>
             <div className="absolute top-20 left-6">
               <span className="inline-flex items-center gap-2 bg-[#8d99ae] text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
                 <Clock className="w-4 h-4" />
-                {business.createdAt.split("T")[0]}
+                {business?.createdAt.split("T")[0]}
               </span>
             </div>
 
             <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12">
               <h1 className="text-4xl lg:text-5xl font-bold text-[#edf2f4] mb-3 drop-shadow-2xl">
-                {business.Businessname}
+                {business?.Businessname}
               </h1>
               <div className="flex items-center gap-2 text-[#edf2f4]">
                 <MapPin className="w-5 h-5" />
                 <span className="text-lg font-medium">
-                  {business.address.location}
+                  {business?.address?.location}
                 </span>
               </div>
             </div>
@@ -135,7 +137,7 @@ const BusinessDescription = () => {
                 About This Business
               </h2>
               <p className="text-[#2b2d42]/80 leading-relaxed text-lg">
-                {business.Businessbio}
+                {business?.Businessbio}
               </p>
             </div>
 
@@ -155,7 +157,7 @@ const BusinessDescription = () => {
                           Address
                         </p>
                         <p className="text-[#2b2d42] font-semibold">
-                          {business.address.location}
+                          {business?.address.location}
                         </p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -164,7 +166,7 @@ const BusinessDescription = () => {
                             Landmark
                           </p>
                           <p className="text-[#2b2d42]">
-                            {business.address.landmark}
+                            {business?.address.landmark}
                           </p>
                         </div>
                         <div>
@@ -172,7 +174,7 @@ const BusinessDescription = () => {
                             Pincode
                           </p>
                           <p className="text-[#2b2d42] font-mono font-semibold">
-                            {business.address.pincode}
+                            {business?.address.pincode}
                           </p>
                         </div>
                       </div>
@@ -196,13 +198,13 @@ const BusinessDescription = () => {
                           Owner
                         </p>
                         <p className="text-[#2b2d42] font-semibold text-lg">
-                          {business.owner.name}
+                          {business?.owner?.name}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-[#8d99ae]/20">
                         <Mail className="w-5 h-5 text-[#d90429]" />
                         <span className="text-[#2b2d42] font-medium text-sm">
-                          {business.owner.email}
+                          {business?.owner?.email}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-[#8d99ae]/20">

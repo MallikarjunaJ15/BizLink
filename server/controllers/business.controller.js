@@ -14,9 +14,10 @@ export const createBusiness = asynHandler(async (req, res) => {
     pincode,
     phoneNumber,
     price,
+    listingType,
   } = req.body;
-  // console.log(req.body)
-  if (!Businessname || !location || !pincode || !phoneNumber) {
+  console.log(req.body);
+  if (!Businessname || !location || !pincode || !phoneNumber || !listingType) {
     throw new ApiError(401, "Fill in all the fields");
   }
 
@@ -40,6 +41,7 @@ export const createBusiness = asynHandler(async (req, res) => {
     owner: req.id,
     address: { location, landmark, pincode },
     phoneNumber,
+    listingType,
   });
   await User.findByIdAndUpdate(req.id, {
     $push: { businesses: Business._id },
@@ -122,6 +124,61 @@ export const deleteBusinessById = asynHandler(async (req, res) => {
 });
 
 export const getAllBusiness = asynHandler(async (req, res) => {
-  const business = await Businesses.find();
+  const business = await Businesses.find({ status: "Active" });
   return res.status(200).json(business);
 });
+
+// let query = {};
+// if (location) {
+//   query["address.location"] = {
+//     $regex: location,
+//     $options: "i",
+//   };
+// }
+// if (category) {
+//   query.category = category;
+// }
+// if (Businessname) {
+//   query.Businessname = {
+//     $regex: Businessname,
+//     $options: "i",
+//   };
+// }
+
+export const searchBusinesses = asynHandler(async (req, res) => {
+  const { location, Businessname, category } = req.query;
+  const searchFilter = {};
+  if (location) {
+    searchFilter["address.location"] = {
+      $regex: location,
+      $options: "i",
+    };
+  }
+  const orConditions = [];
+  if (Businessname) {
+    orConditions.push({
+      Businessname: { $regex: Businessname, $options: "i" },
+    });
+  } 
+
+  if (category) {
+    orConditions.push({
+      category: { $regex: category, $options: "i" },
+    });
+  }
+
+  if (orConditions.length > 0) {
+    searchFilter.$or = orConditions;
+  }
+
+  const businesses = await Businesses.find(searchFilter).sort({
+    createdAt: -1,
+  });
+
+  res.status(200).json({
+    success: true,
+    count: businesses.length,
+    businesses,
+  });
+});
+

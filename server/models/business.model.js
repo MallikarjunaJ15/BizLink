@@ -3,7 +3,7 @@ const businessesSchema = new mongoose.Schema(
   {
     Businessname: {
       type: String,
-      required: true, 
+      required: true,
     },
     BusinessThumbnail: {
       type: String,
@@ -42,8 +42,13 @@ const businessesSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["live", "dealDone"],
-      default: "live",
+      enum: ["Active", "Sold", "Closed"],
+      default: "Active",
+    },
+    listingType: {
+      type: String,
+      enum: ["SELL_BUSINESS", "RENT_BUSINESS", "FRANCHISE", "SELL_ASSETS"],
+      required: true,
     },
   },
   { timestamps: true }
