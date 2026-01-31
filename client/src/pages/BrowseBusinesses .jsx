@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import Card from "@/components/Card";
-import { useGetAllBusinessQuery } from "@/api/BusinessApi";
+import {
+  useFilterBusinessQuery,
+  useGetAllBusinessQuery,
+} from "@/api/BusinessApi";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import {
@@ -11,23 +14,73 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import SidebarMobile from "@/components/SidebarMobile";
 
 const BrowseBusinesses = () => {
   const [filters, setFilters] = useState({
-    type: "",
-    industry: "",
+    listingType: "",
+    category: "",
     location: "",
-    price: [0, 500000],
   });
+
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [filters]);
+
+  console.log(filters);
+  console.log(debouncedFilters);
+  // const hasActiveFilters =
+  //   filters.listingType || filters.category || filters.location;
+  const hasActiveFilters =
+    debouncedFilters.listingType ||
+    debouncedFilters.category ||
+    debouncedFilters.location;
+  // const {
+  //   data: filteredData,
+  //   error: filterError,
+  //   isLoading: isFilterLoading,
+  // } = useFilterBusinessQuery(filters, {
+  //   skip: !hasActiveFilters,
+  // });
+  const {
+    data: filteredData,
+    error: filterError,
+    isLoading: isFilterLoading,
+  } = useFilterBusinessQuery(debouncedFilters, {
+    skip: !hasActiveFilters,
+  });
+
+  const {
+    data: allData,
+    error: allDataError,
+    isLoading: isAllDataLoading,
+  } = useGetAllBusinessQuery({
+    skip: hasActiveFilters,
+  });
+
+  const displayData = hasActiveFilters ? filteredData?.business : allData;
+  const isLoading = hasActiveFilters ? isFilterLoading : isAllDataLoading;
+  const error = hasActiveFilters ? filterError : allDataError;
+
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const { data, error } = useGetAllBusinessQuery();
-  console.log(data);
   useEffect(() => {
     if (error) {
-      toast.error(error?.data.message || "Something went wrong");
+      toast.error(error?.data?.message || "Something went wrong");
     }
   }, [error]);
+
+  const resetFilters = () => {
+    setFilters({
+      listingType: "",
+      category: "",
+      location: "",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#edf2f4] font-display">
@@ -63,30 +116,31 @@ const BrowseBusinesses = () => {
                 <select
                   className="w-full border-2 border-[#8d99ae]/30 rounded-xl p-3 text-[#2b2d42] focus:outline-none focus:ring-2 focus:ring-[#d90429] focus:border-[#d90429] transition-all"
                   onChange={(e) =>
-                    setFilters({ ...filters, type: e.target.value })
+                    setFilters({ ...filters, listingType: e.target.value })
                   }
-                  value={filters.type}
+                  value={filters.listingType}
                 >
                   <option value="">All Types</option>
-                  <option value="sale">For Sale</option>
-                  <option value="rent">For Rent</option>
-                  <option value="vacant">Vacant Space</option>
+                  <option value="SELL_BUSINESS">In selling</option>
+                  <option value="RENT_BUSINESS">Rent</option>
+                  <option value="FRANCHISE">Franchise</option>
+                  <option value="SELL_ASSETS">Assets</option>
                 </select>
               </div>
 
-              {/* Industry Filter */}
+              {/* Category Filter */}
               <div className="mb-6">
                 <label className="block text-sm font-bold text-[#2b2d42] mb-2">
-                  Industry
+                  Category
                 </label>
                 <select
                   className="w-full border-2 border-[#8d99ae]/30 rounded-xl p-3 text-[#2b2d42] focus:outline-none focus:ring-2 focus:ring-[#d90429] focus:border-[#d90429] transition-all"
                   onChange={(e) =>
-                    setFilters({ ...filters, industry: e.target.value })
+                    setFilters({ ...filters, category: e.target.value })
                   }
-                  value={filters.industry}
+                  value={filters.category}
                 >
-                  <option value="">All Industries</option>
+                  <option value="">All Categories</option>
                   <option value="retail">Retail</option>
                   <option value="food">Food & Beverage</option>
                   <option value="it">IT Services</option>
@@ -113,53 +167,45 @@ const BrowseBusinesses = () => {
                 </div>
               </div>
 
-              {/* Price Range */}
-              <div className="mb-6">
-                <label className="block text-sm font-bold text-[#2b2d42] mb-2">
-                  Price Range
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="500000"
-                  step="10000"
-                  className="w-full h-2 bg-[#8d99ae]/20 rounded-lg appearance-none cursor-pointer accent-[#d90429]"
-                  onChange={(e) =>
-                    setFilters({ ...filters, price: [0, e.target.value] })
-                  }
-                  value={filters.price[1]}
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-sm text-[#8d99ae]">₹0</span>
-                  <span className="text-sm font-bold text-[#d90429]">
-                    ₹{parseInt(filters.price[1]).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
               {/* Reset Filters */}
-              <button className="w-full bg-[#8d99ae]/10 hover:bg-[#8d99ae]/20 text-[#2b2d42] py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
+              <button
+                onClick={resetFilters}
+                className="w-full bg-[#8d99ae]/10 hover:bg-[#8d99ae]/20 text-[#2b2d42] py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+              >
                 <X className="w-4 h-4" />
                 Reset Filters
               </button>
             </div>
           </aside>
 
+          {/* Mobile Filters */}
+          {showMobileFilters && (
+            <SidebarMobile
+              setShowMobileFilters={setShowMobileFilters}
+              filters={filters}
+              setFilters={setFilters}
+              resetFilters={resetFilters}
+            />
+          )}
+
           {/* Mobile Filter Button */}
           <button
-            className="lg:hidden fixed bottom-6 right-6 z-50 bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white p-4 rounded-full shadow-2xl"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="lg:hidden fixed bottom-6 right-6 z-30 bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform"
+            onClick={() => setShowMobileFilters(true)}
           >
             <Filter className="w-6 h-6" />
           </button>
 
+          {/* Main Content */}
           <main className="flex-1">
             <div className="bg-white rounded-2xl shadow-md p-6 mb-6 border-2 border-[#8d99ae]/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-[#d90429]" />
                   <h2 className="text-xl font-bold text-[#2b2d42]">
-                    {data?.length} Businesses Found
+                    {isLoading
+                      ? "Loading..."
+                      : `${displayData?.length || 0} Businesses Found`}
                   </h2>
                 </div>
                 <select className="border-2 border-[#8d99ae]/30 rounded-xl px-4 py-2 text-sm font-medium text-[#2b2d42] focus:outline-none focus:ring-2 focus:ring-[#d90429]">
@@ -171,13 +217,19 @@ const BrowseBusinesses = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {data?.map((business) => (
-                <Card key={business._id} {...business} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="bg-white rounded-2xl shadow-md p-12 text-center border-2 border-[#8d99ae]/10">
+                <p className="text-[#8d99ae]">Loading businesses...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {displayData?.map((business) => (
+                  <Card key={business._id} {...business} />
+                ))}
+              </div>
+            )}
 
-            {data?.length === 0 && (
+            {!isLoading && displayData?.length === 0 && (
               <div className="bg-white rounded-2xl shadow-md p-12 text-center border-2 border-[#8d99ae]/10">
                 <Building2 className="w-16 h-16 text-[#8d99ae] mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-[#2b2d42] mb-2">

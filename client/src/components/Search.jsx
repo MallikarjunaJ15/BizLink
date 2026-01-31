@@ -85,27 +85,7 @@ const navigate = useNavigate();
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <select
-                value={""}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="border-2 border-[#8d99ae]/30 rounded-xl px-4 py-2 text-sm font-semibold text-[#2b2d42] focus:outline-none focus:ring-2 focus:ring-[#d90429] transition-all"
-              >
-                <option value="recent">Most Recent</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="popular">Most Popular</option>
-              </select>
-              {hasSearchParams && (
-                <button
-                  onClick={clearFilters}
-                  className="flex items-center gap-2 bg-[#8d99ae]/10 hover:bg-[#8d99ae]/20 text-[#2b2d42] px-4 py-2 rounded-xl font-semibold transition-all"
-                >
-                  <X className="w-4 h-4" />
-                  Clear Filters
-                </button>
-              )}
-            </div>
+      
           </div>
           {hasSearchParams && (
             <div className="mt-4 pt-4 border-t-2 border-[#8d99ae]/10">

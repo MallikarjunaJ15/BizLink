@@ -124,7 +124,9 @@ export const deleteBusinessById = asynHandler(async (req, res) => {
 });
 
 export const getAllBusiness = asynHandler(async (req, res) => {
-  const business = await Businesses.find({ status: "Active" });
+  const business = await Businesses.find({ status: "Active" }).sort({
+    createdAt: -1,
+  });
   return res.status(200).json(business);
 });
 
@@ -159,7 +161,7 @@ export const searchBusinesses = asynHandler(async (req, res) => {
     orConditions.push({
       Businessname: { $regex: Businessname, $options: "i" },
     });
-  } 
+  }
 
   if (category) {
     orConditions.push({
@@ -182,3 +184,29 @@ export const searchBusinesses = asynHandler(async (req, res) => {
   });
 });
 
+export const filertBusiness = asynHandler(async (req, res) => {
+  const { listingType, category, location } = req.query;
+  const filters = {};
+  if (listingType) {
+    filters.listingType = {
+      $regex: listingType,
+      $options: "i",
+    };
+  }
+  if (category) {
+    filters.category = {
+      $regex: category,
+      $options: "i",
+    };
+  }
+  if (location) {
+    filters.location = {
+      $regex: location,
+      $options: "i",
+    };
+  }
+  const business = await Businesses.find(filters).sort({ createdAt: -1 });
+  return res
+    .status(200)
+    .json({ success: true, count: business.length, business });
+});

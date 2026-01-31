@@ -77,11 +77,11 @@ const Card = (business) => {
         </div>
 
         {isOwner ? (
-          <div className="flex items-center gap-6">
+          <div className="grid grid-cols-3 gap-2">
             {" "}
             <button
               onClick={() => navigate(`/business/description/${business?._id}`)}
-              className=" w-1/3 bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
+              className="bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-1 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
             >
               View Details
               <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
@@ -89,14 +89,14 @@ const Card = (business) => {
             <Link
               to={`/edit/${business._id}`}
               // onClick={() => navigate(`/profile/edit/${business._id}`)}
-              className="w-1/3 bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
+              className=" bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
             >
               Edit
               <Edit className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
             </Link>
             <button
               // onClick={() => navigate(`/business/description/${business?._id}`)}
-              className="w-1/3 bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
+              className="bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
             >
               Delete
               <Edit className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />

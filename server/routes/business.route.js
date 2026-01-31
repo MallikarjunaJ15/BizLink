@@ -5,6 +5,7 @@ import {
   createBusiness,
   deleteBusinessById,
   editBusinessByid,
+  filertBusiness,
   getAllBusiness,
   getBusinessById,
   searchBusinesses,
@@ -37,4 +38,5 @@ businessRoutes.delete(
 );
 businessRoutes.get("/all", isAuthenticated, asynHandler(getAllBusiness));
 businessRoutes.get("/search", isAuthenticated, asynHandler(searchBusinesses));
+businessRoutes.get("/filter", asynHandler(filertBusiness));
 export default businessRoutes;

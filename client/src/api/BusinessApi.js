@@ -36,6 +36,12 @@ export const BusinessApi = createApi({
         return `/search?${qs}`;
       },
     }),
+    filterBusiness: builder.query({
+      query: (params) => {
+        const query = new URLSearchParams(params).toString();
+        return `/filter?${query}`;
+      },
+    }),
   }),
 });
 
@@ -45,4 +51,5 @@ export const {
   useGetBusinessByIdQuery,
   useEditBusinessMutation,
   useSearchBusinessQuery,
+  useFilterBusinessQuery,
 } = BusinessApi;
