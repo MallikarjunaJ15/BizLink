@@ -42,7 +42,7 @@ const businessesSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "Sold", "Closed"],
+      enum: ["Active", "Sold"],
       default: "Active",
     },
     listingType: {

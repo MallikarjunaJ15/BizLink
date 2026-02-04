@@ -16,14 +16,27 @@ import {
   CheckCircle2,
   Loader2,
   IndianRupee,
+  Delete,
+  Trash,
+  Hand,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetBusinessByIdQuery } from "@/api/BusinessApi";
+import {
+  useGetBusinessByIdQuery,
+  useUpdateStatusMutation,
+} from "@/api/BusinessApi";
+import { useSelector } from "react-redux";
 
 const BusinessDescription = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const user = useSelector((store) => store.auth.user);
   const { data, isLoading, error } = useGetBusinessByIdQuery(id);
+  const [
+    updateStatus,
+    { data: updateStatusData, isLoading: updateStatusIsLoading },
+  ] = useUpdateStatusMutation();
+  const isOwner = user?._id == data?.Business?.owner._id;
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -32,7 +45,10 @@ const BusinessDescription = () => {
       </div>
     );
   }
-
+  console.log(updateStatusData);
+  const sold = async () => {
+    await updateStatus(id);
+  };
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -219,16 +235,34 @@ const BusinessDescription = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-6 mt-8">
-              <button className="flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3">
-                <Phone className="w-5 h-5" />
-                Contact Now
-              </button>
-              <button className="flex-1 bg-white border-2 border-[#d90429] text-[#d90429] hover:bg-[#d90429] hover:text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3">
-                <Mail className="w-5 h-5" />
-                Send Inquiry
-              </button>
-            </div>
+            {!isOwner ? (
+              <div className="flex flex-col sm:flex-row gap-6 mt-8">
+                <button className="flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3">
+                  <Phone className="w-5 h-5" />
+                  Contact Now
+                </button>
+                <button className="flex-1 bg-white border-2 border-[#d90429] text-[#d90429] hover:bg-[#d90429] hover:text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3">
+                  <Mail className="w-5 h-5" />
+                  Send Inquiry
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-6 mt-8">
+                <button className="cursor-pointer flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3">
+                  <Trash className="w-5 h-5" />
+                  Delete
+                </button>
+
+                <button
+                  disabled={updateStatusIsLoading}
+                  onClick={sold}
+                  className="cursor-pointer flex-1 bg-white border-2 border-[#d90429] text-[#d90429] hover:bg-[#d90429] hover:text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3"
+                >
+                  <Hand className="w-5 h-5" />
+                  Sold
+                </button>
+              </div>
+            )}
 
             <div className="mt-8 pt-8 border-t-2 border-[#8d99ae]/20">
               <div className="flex flex-wrap items-center justify-center gap-8 text-center">

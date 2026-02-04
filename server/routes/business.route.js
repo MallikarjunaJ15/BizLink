@@ -9,6 +9,7 @@ import {
   getAllBusiness,
   getBusinessById,
   searchBusinesses,
+  updateBusinessStatus,
 } from "../controllers/business.controller.js";
 import { asynHandler } from "../utils/asyncHandler.js";
 const businessRoutes = express.Router();
@@ -39,4 +40,5 @@ businessRoutes.delete(
 businessRoutes.get("/all", isAuthenticated, asynHandler(getAllBusiness));
 businessRoutes.get("/search", isAuthenticated, asynHandler(searchBusinesses));
 businessRoutes.get("/filter", asynHandler(filertBusiness));
+businessRoutes.patch("/updateStatus/:id", asynHandler(updateBusinessStatus));
 export default businessRoutes;

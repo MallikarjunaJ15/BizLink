@@ -31,8 +31,8 @@ const BrowseBusinesses = () => {
     return () => clearTimeout(timer);
   }, [filters]);
 
-  console.log(filters);
-  console.log(debouncedFilters);
+  // console.log(filters);
+  // console.log(debouncedFilters);
   // const hasActiveFilters =
   //   filters.listingType || filters.category || filters.location;
   const hasActiveFilters =
@@ -208,12 +208,6 @@ const BrowseBusinesses = () => {
                       : `${displayData?.length || 0} Businesses Found`}
                   </h2>
                 </div>
-                <select className="border-2 border-[#8d99ae]/30 rounded-xl px-4 py-2 text-sm font-medium text-[#2b2d42] focus:outline-none focus:ring-2 focus:ring-[#d90429]">
-                  <option>Most Recent</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Most Popular</option>
-                </select>
               </div>
             </div>
 

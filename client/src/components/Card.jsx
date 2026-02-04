@@ -77,7 +77,7 @@ const Card = (business) => {
         </div>
 
         {isOwner ? (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {" "}
             <button
               onClick={() => navigate(`/business/description/${business?._id}`)}
@@ -94,13 +94,13 @@ const Card = (business) => {
               Edit
               <Edit className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
             </Link>
-            <button
+            {/* <button
               // onClick={() => navigate(`/business/description/${business?._id}`)}
               className="bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
             >
               Delete
               <Edit className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-            </button>
+            </button> */}
           </div>
         ) : (
           <button

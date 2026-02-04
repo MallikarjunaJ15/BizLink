@@ -42,6 +42,12 @@ export const BusinessApi = createApi({
         return `/filter?${query}`;
       },
     }),
+    updateStatus: builder.mutation({
+      query: (id) => ({
+        url: `/updateStatus/${id}`,
+        method: "PATCH",
+      }),
+    }),
   }),
 });
 
@@ -52,4 +58,5 @@ export const {
   useEditBusinessMutation,
   useSearchBusinessQuery,
   useFilterBusinessQuery,
+  useUpdateStatusMutation,
 } = BusinessApi;

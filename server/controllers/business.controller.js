@@ -210,3 +210,28 @@ export const filertBusiness = asynHandler(async (req, res) => {
     .status(200)
     .json({ success: true, count: business.length, business });
 });
+export const updateBusinessStatus = asynHandler(async (req, res) => {
+  const businessId = req.params.id;
+  const business = await Businesses.findById(businessId);
+  if (!business) {
+    return res.status(404).json({
+      success: false,
+      message: "Business not found",
+    });
+  }
+  // if (userId.toString() !== business.owner.toString()) {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "You are not authorized to update this business",
+  //   });
+  // }
+
+  business.status = "Sold";
+  await business.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Business status updated successfully",
+    business,
+  });
+});
