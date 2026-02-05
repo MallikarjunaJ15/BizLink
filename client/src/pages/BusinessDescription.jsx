@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ArrowLeft,
   MapPin,
@@ -21,11 +21,14 @@ import {
   Hand,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+
 import {
+  useDeleteBusinessMutation,
   useGetBusinessByIdQuery,
   useUpdateStatusMutation,
 } from "@/api/BusinessApi";
 import { useSelector } from "react-redux";
+import { toast } from "sonner";
 
 const BusinessDescription = () => {
   const { id } = useParams();
@@ -34,9 +37,38 @@ const BusinessDescription = () => {
   const { data, isLoading, error } = useGetBusinessByIdQuery(id);
   const [
     updateStatus,
-    { data: updateStatusData, isLoading: updateStatusIsLoading },
+    { isLoading: updateStatusIsLoading, isSuccess: updateStatusSuccess },
   ] = useUpdateStatusMutation();
-  const isOwner = user?._id == data?.Business?.owner._id;
+  const [
+    deleteBusiness,
+    {
+      isSuccess: deleteBusinessSuccess,
+      isLoading: deleteBusinessIsLoading,
+      error: deleteBusinessError,
+    },
+  ] = useDeleteBusinessMutation();
+  useEffect(() => {
+    if (deleteBusinessSuccess) {
+      toast.success("Business deleted successfully!");
+      navigate("/profile");
+    }
+  }, [deleteBusinessSuccess, navigate]);
+  useEffect(() => {
+    if (deleteBusinessError) {
+      toast.error(
+        deleteBusinessError?.data?.message || "Failed to delete business",
+      );
+    }
+  }, [deleteBusinessError]);
+  useEffect(() => {
+    if (updateStatusSuccess) {
+      toast.success("Business marked as sold!");
+      navigate("/business");
+    }
+  }, [updateStatusSuccess, navigate]);
+
+  const isOwner = user?._id === data?.Business?.owner?._id;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -45,10 +77,7 @@ const BusinessDescription = () => {
       </div>
     );
   }
-  console.log(updateStatusData);
-  const sold = async () => {
-    await updateStatus(id);
-  };
+
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -69,6 +98,24 @@ const BusinessDescription = () => {
   }
 
   const business = data?.Business;
+
+  const handleSold = async () => {
+    try {
+      await updateStatus(id).unwrap();
+    } catch (error) {
+      toast.error(error?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this business?")) {
+      try {
+        await deleteBusiness(id).unwrap();
+      } catch (error) {
+        console.error("Delete failed:", error);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#edf2f4] font-display">
@@ -248,19 +295,25 @@ const BusinessDescription = () => {
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-6 mt-8">
-                <button className="cursor-pointer flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3">
+                <button
+                  onClick={handleDelete}
+                  className="cursor-pointer flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3"
+                >
                   <Trash className="w-5 h-5" />
                   Delete
                 </button>
-
-                <button
-                  disabled={updateStatusIsLoading}
-                  onClick={sold}
-                  className="cursor-pointer flex-1 bg-white border-2 border-[#d90429] text-[#d90429] hover:bg-[#d90429] hover:text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3"
-                >
-                  <Hand className="w-5 h-5" />
-                  Sold
-                </button>
+                {isOwner && data?.Business?.status == "Sold" ? (
+                  ""
+                ) : (
+                  <button
+                    disabled={updateStatusIsLoading}
+                    onClick={handleSold}
+                    className="cursor-pointer flex-1 bg-white border-2 border-[#d90429] text-[#d90429] hover:bg-[#d90429] hover:text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3"
+                  >
+                    <Hand className="w-5 h-5" />
+                    Mark if Sold
+                  </button>
+                )}
               </div>
             )}
 

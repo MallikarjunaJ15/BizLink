@@ -33,7 +33,7 @@ businessRoutes.post(
 );
 
 businessRoutes.delete(
-  "/deleteBusiness/:BusinessId",
+  "/deleteBusiness/:id",
   isAuthenticated,
   asynHandler(deleteBusinessById),
 );

@@ -48,6 +48,12 @@ export const BusinessApi = createApi({
         method: "PATCH",
       }),
     }),
+    deleteBusiness: builder.mutation({
+      query: (id) => ({
+        url: `/deleteBusiness/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -59,4 +65,5 @@ export const {
   useSearchBusinessQuery,
   useFilterBusinessQuery,
   useUpdateStatusMutation,
+  useDeleteBusinessMutation,
 } = BusinessApi;

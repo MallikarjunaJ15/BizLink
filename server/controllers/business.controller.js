@@ -16,7 +16,6 @@ export const createBusiness = asynHandler(async (req, res) => {
     price,
     listingType,
   } = req.body;
-  console.log(req.body);
   if (!Businessname || !location || !pincode || !phoneNumber || !listingType) {
     throw new ApiError(401, "Fill in all the fields");
   }
@@ -105,22 +104,33 @@ export const getBusinessById = asynHandler(async (req, res) => {
 });
 
 export const deleteBusinessById = asynHandler(async (req, res) => {
-  const { BusinessId } = req.params;
-  const Business = await Businesses.findByIdAndDelete(BusinessId);
-  if (!Business) throw new ApiError(404, "Business not found");
-  if (Business.owner.toString() !== req.id)
-    throw new ApiError(403, "You are not authorized to delete this business");
-  if (Business.BusinessThumbnail) {
-    const publicId = await Business.BusinessThumbnail.split("/")
-      .pop()
-      .split(".")[0];
-    await deleteMediaFromCloudinary(publicId);
+  const { id } = req.params;
+  const business = await Businesses.findById(id);
+  if (!business) {
+    throw new ApiError(404, "Business not found");
   }
-  await Businesses.save();
+  if (business.owner.toString() !== req.id.toString()) {
+    throw new ApiError(403, "You are not authorized to delete this business");
+  }
+  if (business.BusinessThumbnail) {
+    try {
+      const publicId = business.BusinessThumbnail.split("/")
+        .pop()
+        .split(".")[0];
+      await deleteMediaFromCloudinary(publicId);
+    } catch (error) {
+      console.error("Failed to delete image from Cloudinary:", error);
+    }
+  }
   await User.findByIdAndUpdate(req.id, {
-    $pull: { businesses: Business._id },
+    $pull: { businesses: business._id },
   });
-  return res.status(200).json({ message: "Business deleted successfully" });
+
+  await Businesses.findByIdAndDelete(id);
+  return res.status(200).json({
+    success: true,
+    message: "Business deleted successfully",
+  });
 });
 
 export const getAllBusiness = asynHandler(async (req, res) => {

@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 
 const Card = (business) => {
   const user = useSelector((store) => store.auth.user);
-  const isOwner = user._id === business.owner;
+  const isOwner = user?._id === business?.owner;
   const navigate = useNavigate();
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl border-2 border-[#8d99ae]/10 hover:border-[#d90429]/30 transition-all duration-300 font-display">
@@ -77,7 +77,7 @@ const Card = (business) => {
         </div>
 
         {isOwner ? (
-          <div className="grid grid-cols-2 gap-2">
+          <div className={`grid ${isOwner && business.status == "Sold" ?"grid-cols-1":"grid-cols-2 gap-2"}`}>
             {" "}
             <button
               onClick={() => navigate(`/business/description/${business?._id}`)}
@@ -86,14 +86,18 @@ const Card = (business) => {
               View Details
               <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
             </button>
-            <Link
-              to={`/edit/${business._id}`}
-              // onClick={() => navigate(`/profile/edit/${business._id}`)}
-              className=" bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
-            >
-              Edit
-              <Edit className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-            </Link>
+            {isOwner && business.status == "Sold" ? (
+              ""
+            ) : (
+              <Link
+                to={`/edit/${business._id}`}
+                // onClick={() => navigate(`/profile/edit/${business._id}`)}
+                className=" bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"
+              >
+                Edit
+                <Edit className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+              </Link>
+            )}
             {/* <button
               // onClick={() => navigate(`/business/description/${business?._id}`)}
               className="bg-gradient-to-r from-[#d90429] to-[#ef233c] hover:from-[#ef233c] hover:to-[#d90429] text-white py-3 px-4 rounded-xl font-bold transition-all shadow-md hover:shadow-xl flex items-center justify-center gap-2 group/btn"

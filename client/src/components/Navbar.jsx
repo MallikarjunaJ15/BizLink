@@ -1,5 +1,3 @@
-
-
 import { Menu, X, User, LogOut } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -67,10 +65,10 @@ const Navbar = () => {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-2 bg-[#edf2f4] rounded-xl">
                   <Link className=" flex gap-4" to={"/profile"}>
-                  <User className="w-4 h-4 text-[#2b2d42]" />
-                  <span className="text-sm font-semibold text-[#2b2d42]">
-                    {user.name}
-                  </span>
+                    <User className="w-4 h-4 text-[#2b2d42]" />
+                    <span className="text-sm font-semibold text-[#2b2d42]">
+                      {user.name}
+                    </span>
                   </Link>
                 </div>
                 <Button
@@ -131,11 +129,15 @@ const Navbar = () => {
               <div className="pt-3 border-t border-[#8d99ae]/20 space-y-2">
                 {user ? (
                   <>
-                    <div className="px-4 py-2 bg-[#edf2f4] rounded-lg">
+                    <Link
+                      className=" flex items-center justify-center bg-gradient-to-r from-[#8d99ae] to-gray-100 text-[#d90429] py-2"
+                      to={"/profile"}
+                    >
+                      <User className="w-4 h-4 text-[#2b2d42]" />
                       <span className="text-sm font-semibold text-[#2b2d42]">
-                        {user.name || "User"}
+                        {user.name}
                       </span>
-                    </div>
+                    </Link>
                     <Button
                       onClick={handleLogout}
                       className="w-full bg-[#d90429] hover:bg-[#ef233c] text-white font-semibold rounded-xl"
