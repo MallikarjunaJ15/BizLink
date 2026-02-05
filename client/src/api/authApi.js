@@ -56,8 +56,20 @@ export const authApi = createApi({
         dispatch(setUser(null));
       },
     }),
+    uplodProfilePhoto: builder.mutation({
+      query: (formData) => ({
+        url: "/uploadProfile",
+        body: formData,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
-export const { useRegisterUserMutation, useLoginUserMutation, useLoadMeQuery,useLogoutMutation } =
-  authApi;
+export const {
+  useRegisterUserMutation,
+  useLoginUserMutation,
+  useLoadMeQuery,
+  useLogoutMutation,
+  useUplodProfilePhotoMutation,
+} = authApi;

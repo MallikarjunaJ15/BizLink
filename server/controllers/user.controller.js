@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import { uploadMedia } from "../utils/cloudinary.js";
+import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
 import formatBufferToDataUri from "../utils/dataUri.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
@@ -99,3 +99,32 @@ export const logout = (req, res) => {
     message: "Logged out successfully",
   });
 };
+
+export const editProfilePhoto = asynHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.id);
+    const profilePicture = req.file;
+    if (!profilePicture) {
+      throw new ApiError(400, "No file uploaded");
+    }
+    if (user.profilePicture) {
+      const publicId = user.profilePicture.split("/").pop().split(".")[0];
+      await deleteMediaFromCloudinary(publicId);
+    }
+    const buffer = await formatBufferToDataUri(profilePicture);
+    // console.log("Buffer" + buffer);
+    const uploadRes = await uploadMedia(buffer);
+    // console.log("cloudinary response", uploadRes);
+    if (!uploadRes) {
+      throw new ApiError(500, "Image upload failed");
+    }
+
+    // console.log("after", profilePicture);
+    const { secure_url } = uploadRes;
+    user.profilePicture = secure_url;
+    await user.save();
+    return res.status(200).json({ message: "Profile upload sucessfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});

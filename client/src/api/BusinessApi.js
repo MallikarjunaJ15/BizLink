@@ -54,6 +54,7 @@ export const BusinessApi = createApi({
         method: "DELETE",
       }),
     }),
+ 
   }),
 });
 

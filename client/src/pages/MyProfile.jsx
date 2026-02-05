@@ -1,3 +1,4 @@
+import { useUplodProfilePhotoMutation } from "@/api/authApi";
 import Card from "@/components/Card";
 import {
   User2,
@@ -19,15 +20,36 @@ import {
   Eye,
   Heart,
   Share2,
+  Check,
+  Loader2,
+  X,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const MyProfile = () => {
   const user = useSelector((store) => store.auth.user);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("businesses");
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [uplodProfilePhoto, { data, isLoading, isSuccess, isError }] =
+    useUplodProfilePhotoMutation();
+  console.log(data);
+  useEffect(() => {
+    if (isError) {
+      toast.error("EError occurred while uploading a photo");
+    }
+    if (isSuccess) {
+      toast.success(data?.message);
+      setSelectedPhoto(null);
+      if (fileRef.current) {
+        fileRef.current.value = ""; 
+      }
+    }
+  }, [isSuccess, isError]);
+
   const stats = [
     {
       icon: Building2,
@@ -45,6 +67,23 @@ const MyProfile = () => {
     },
   ];
 
+  const fileRef = useRef(null);
+  const handleFileChange = (e) => {
+    try {
+      const file = e.target.files[0];
+      if (file) {
+        const preview = URL.createObjectURL(file);
+        setSelectedPhoto(preview);
+      }
+    } catch (error) {}
+  };
+
+  const handleUpload = async () => {
+    const formData = new FormData();
+    formData.append("profilePicture", fileRef.current.files[0]);
+    await uplodProfilePhoto(formData);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#edf2f4] via-white to-[#edf2f4] font-display">
       <div className="relative overflow-hidden bg-gradient-to-r from-[#2b2d42] via-[#2b2d42] to-[#8d99ae] pt-24 pb-32">
@@ -58,30 +97,80 @@ const MyProfile = () => {
           <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
             <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#d90429] to-[#ef233c] rounded-full blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
-                <div className="relative">
-                  {user?.profilePicture ? (
-                    <img
-                      src={user?.profilePicture}
-                      alt={user?.name}
-                      className="w-32 h-32 lg:w-40 lg:h-40 rounded-full object-cover border-4 border-white shadow-xl"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-gradient-to-br from-[#d90429] to-[#ef233c] flex items-center justify-center border-4 border-white shadow-xl">
-                      <span className="text-5xl font-bold text-white">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </span>
+                {selectedPhoto ? (
+                  ""
+                ) : (
+                  <div className="absolute -inset-1 bg-gradient-to-r from-[#d90429] to-[#ef233c] rounded-full blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <div className="relative">
+                    {selectedPhoto ? (
+                      <img
+                        src={selectedPhoto}
+                        alt={user?.name}
+                        className="w-32 h-32 lg:w-40 lg:h-40 rounded-full object-cover border-4 border-white shadow-xl"
+                      />
+                    ) : user?.profilePicture ? (
+                      <img
+                        src={user?.profilePicture}
+                        alt={user?.name}
+                        className="w-32 h-32 lg:w-40 lg:h-40 rounded-full object-cover border-4 border-white shadow-xl"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-gradient-to-br from-[#d90429] to-[#ef233c] flex items-center justify-center border-4 border-white shadow-xl">
+                        <span className="text-5xl font-bold text-white">
+                          {user?.name?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => fileRef?.current?.click()}
+                      className="cursor-pointer absolute bottom-2 right-2 bg-white hover:bg-[#d90429] text-[#2b2d42] hover:text-white p-2.5 rounded-full shadow-lg transition-all hover:scale-110 group"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  </div>
+                  {selectedPhoto && (
+                    <div className="flex gap-2 w-full mt-2">
+                      <button
+                        onClick={handleUpload}
+                        disabled={isLoading}
+                        className="cursor-pointer flex-1 px-4 py-2 bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white font-semibold rounded-2xl hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Save
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setSelectedPhoto(null)}
+                        disabled={isLoading}
+                        className="cursor-pointer hover:transition-all hover:ease-in-out px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 transition-all disabled:opacity-50"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
                   )}
-                  <button className="absolute bottom-2 right-2 bg-white hover:bg-[#d90429] text-[#2b2d42] hover:text-white p-2.5 rounded-full shadow-lg transition-all hover:scale-110 group">
-                    <Edit className="w-4 h-4" />
-                  </button>
                 </div>
                 <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1 shadow-lg">
                   <BadgeCheck className="w-6 h-6 text-white" />
                 </div>
               </div>
-
+              <input
+                onChange={handleFileChange}
+                type="file"
+                className="hidden"
+                ref={fileRef}
+                accept={"image/*"}
+              />
               <div className="flex-1 text-white">
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -90,10 +179,10 @@ const MyProfile = () => {
                       <Award className="w-8 h-8 text-yellow-400" />
                     </h1>
                   </div>
-                  <button className="hidden lg:flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full font-semibold transition-all hover:scale-105 border border-white/20">
+                  {/* <button className="hidden lg:flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full font-semibold transition-all hover:scale-105 border border-white/20">
                     <Settings className="w-5 h-5" />
                     Settings
-                  </button>
+                  </button> */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
