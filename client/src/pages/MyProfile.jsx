@@ -24,13 +24,20 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const MyProfile = () => {
   const user = useSelector((store) => store.auth.user);
+  const activeBusinesses = useMemo(() => {
+    return user?.businesses?.filter((biz) => biz.status !== "Sold") || [];
+  }, [user?.businesses]);
+
+  const soldBusinesses = useMemo(() => {
+    return user?.businesses?.filter((biz) => biz.status === "Sold") || [];
+  }, [user?.businesses]);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("businesses");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -45,7 +52,7 @@ const MyProfile = () => {
       toast.success(data?.message);
       setSelectedPhoto(null);
       if (fileRef.current) {
-        fileRef.current.value = ""; 
+        fileRef.current.value = "";
       }
     }
   }, [isSuccess, isError]);
@@ -53,17 +60,17 @@ const MyProfile = () => {
   const stats = [
     {
       icon: Building2,
-      label: "Total Listings",
-      value: user?.businesses?.length || 0,
+      label: "Active Listings",
+      value: activeBusinesses?.length,
       color: "from-[#d90429] to-[#ef233c]",
       bgColor: "bg-red-50",
     },
     {
-      icon: Eye,
-      label: "Profile Views",
-      value: "2.4K",
-      color: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-50",
+      icon: Heart,
+      label: "Sold Businesses",
+      value: soldBusinesses?.length,
+      color: "from-green-500 to-green-600",
+      bgColor: "bg-green-50",
     },
   ];
 
@@ -265,7 +272,7 @@ const MyProfile = () => {
             <span className="hidden sm:inline">My Businesses</span>
             <span className="sm:hidden">Businesses</span>
             <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
-              {user?.businesses?.length || 0}
+              {activeBusinesses?.length || 0}
             </span>
           </button>
           <button
@@ -278,17 +285,9 @@ const MyProfile = () => {
           >
             <Heart className="w-5 h-5" />
             <span className="hidden sm:inline">Sold</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("analytics")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold transition-all ${
-              activeTab === "analytics"
-                ? "bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white shadow-lg"
-                : "text-[#8d99ae] hover:text-[#2b2d42] hover:bg-[#edf2f4]"
-            }`}
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span className="hidden sm:inline">Analytics</span>
+            <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
+              {soldBusinesses.length}
+            </span>
           </button>
         </div>
 
@@ -309,9 +308,9 @@ const MyProfile = () => {
               </button>
             </div>
 
-            {user?.businesses?.length > 0 ? (
+            {activeBusinesses?.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {user?.businesses?.map((business) => (
+                {activeBusinesses?.map((business) => (
                   <Card key={business._id} {...business} />
                 ))}
               </div>
@@ -340,39 +339,43 @@ const MyProfile = () => {
         )}
 
         {activeTab === "sold" && (
-          <div className="bg-white rounded-3xl shadow-xl p-16 text-center border-2 border-[#8d99ae]/10">
-            <div className="bg-gradient-to-br from-pink-50 to-white w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Heart className="w-12 h-12 text-pink-500" />
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold">
+                <span className="bg-gradient-to-r from-[#d90429] to-[#ef233c] bg-clip-text text-transparent">
+                  Sold Businesses
+                </span>
+              </h2>
             </div>
-            <h3 className="text-2xl font-bold text-[#2b2d42] mb-3">
-              No Saved Businesses
-            </h3>
-            <p className="text-[#8d99ae] mb-8 max-w-md mx-auto">
-              Save businesses you're interested in to view them later. Start
-              exploring now!
-            </p>
-            <button
-              onClick={() => navigate("/business")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-            >
-              <Building2 className="w-5 h-5" />
-              Browse Businesses
-            </button>
-          </div>
-        )}
 
-        {activeTab === "analytics" && (
-          <div className="bg-white rounded-3xl shadow-xl p-16 text-center border-2 border-[#8d99ae]/10">
-            <div className="bg-gradient-to-br from-blue-50 to-white w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-              <BarChart3 className="w-12 h-12 text-blue-500" />
-            </div>
-            <h3 className="text-2xl font-bold text-[#2b2d42] mb-3">
-              Analytics Coming Soon
-            </h3>
-            <p className="text-[#8d99ae] max-w-md mx-auto">
-              Get insights into your listing performance, views, and engagement
-              metrics.
-            </p>
+            {soldBusinesses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {soldBusinesses.map((business) => (
+                  <div key={business._id} className="max-w-md mx-auto w-full">
+                    <Card {...business} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl shadow-xl p-16 text-center border-2 border-[#8d99ae]/10">
+                <div className="bg-gradient-to-br from-pink-50 to-white w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Heart className="w-12 h-12 text-pink-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#2b2d42] mb-3">
+                  No Businesses Sold Yet!
+                </h3>
+                <p className="text-[#8d99ae] mb-8 max-w-md mx-auto">
+                  When you sell a business, it will appear here
+                </p>
+                <button
+                  onClick={() => setActiveTab("businesses")}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                >
+                  <Building2 className="w-5 h-5" />
+                  View My Businesses
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
