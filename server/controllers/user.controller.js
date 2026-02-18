@@ -3,12 +3,12 @@ import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
 import formatBufferToDataUri from "../utils/dataUri.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
-import { asynHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
     if (!name || !email || !password) {
       return res
         .status(400)
@@ -20,7 +20,7 @@ export const register = async (req, res) => {
         .json({ message: "Password cannot exceed 12 characters" });
     }
     const profilePicture = req.file;
-    console.log(profilePicture);
+    // console.log(profilePicture);
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
@@ -80,7 +80,7 @@ export const login = async (req, res) => {
   }
 };
 
-export const getUserProfile = asynHandler(async (req, res) => {
+export const getUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.id).populate("businesses");
   if (!user) throw new ApiError(404, "user not found");
   return res.status(200).json({ user });
@@ -100,7 +100,7 @@ export const logout = (req, res) => {
   });
 };
 
-export const editProfilePhoto = asynHandler(async (req, res) => {
+export const editProfilePhoto = asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.id);
     const profilePicture = req.file;

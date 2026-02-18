@@ -23,6 +23,9 @@ import {
   Check,
   Loader2,
   X,
+  icons,
+  MessageCircle,
+  PhoneCall,
 } from "lucide-react";
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
@@ -43,7 +46,7 @@ const MyProfile = () => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [uplodProfilePhoto, { data, isLoading, isSuccess, isError }] =
     useUplodProfilePhotoMutation();
-  console.log(data);
+  // console.log(data);
   useEffect(() => {
     if (isError) {
       toast.error("EError occurred while uploading a photo");
@@ -285,6 +288,20 @@ const MyProfile = () => {
           >
             <Heart className="w-5 h-5" />
             <span className="hidden sm:inline">Sold</span>
+            <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
+              {soldBusinesses.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab("requested")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold transition-all ${
+              activeTab === "requested"
+                ? "bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white shadow-lg"
+                : "text-[#8d99ae] hover:text-[#2b2d42] hover:bg-[#edf2f4]"
+            }`}
+          >
+            <PhoneCall className="w-5 h-5" />
+            <span className="hidden sm:inline">Requested Meetings</span>
             <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
               {soldBusinesses.length}
             </span>

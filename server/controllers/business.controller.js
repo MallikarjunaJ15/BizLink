@@ -2,9 +2,9 @@ import { Businesses } from "../models/business.model.js";
 import { User } from "../models/user.model.js";
 import formatBufferToDataUri from "../utils/dataUri.js";
 import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
-import { asynHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-export const createBusiness = asynHandler(async (req, res) => {
+export const createBusiness = asyncHandler(async (req, res) => {
   const {
     Businessname,
     Businessbio,
@@ -52,7 +52,7 @@ export const createBusiness = asynHandler(async (req, res) => {
   });
 });
 
-export const editBusinessByid = asynHandler(async (req, res) => {
+export const editBusinessByid = asyncHandler(async (req, res) => {
   const { id } = req.params;
   let Business = await Businesses.findById(id);
   if (!Business) throw new ApiError(404, "Business not found");
@@ -92,18 +92,20 @@ export const editBusinessByid = asynHandler(async (req, res) => {
     success: true,
   });
 });
-export const getBusinessById = asynHandler(async (req, res) => {
+export const getBusinessById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const Business = await Businesses.findById(id)
-    .populate("owner")
-    .select("-password");
+  const Business = await Businesses.findById(id).populate(
+    "owner",
+    "name email profilePicture createdAt",
+  );
+
   if (!Business) {
     throw new ApiError(404, "The page is unavailable");
   }
   return res.status(200).json({ Business, success: true });
 });
 
-export const deleteBusinessById = asynHandler(async (req, res) => {
+export const deleteBusinessById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const business = await Businesses.findById(id);
   if (!business) {
@@ -133,7 +135,7 @@ export const deleteBusinessById = asynHandler(async (req, res) => {
   });
 });
 
-export const getAllBusiness = asynHandler(async (req, res) => {
+export const getAllBusiness = asyncHandler(async (req, res) => {
   const business = await Businesses.find({ status: "Active" }).sort({
     createdAt: -1,
   });
@@ -157,7 +159,7 @@ export const getAllBusiness = asynHandler(async (req, res) => {
 //   };
 // }
 
-export const searchBusinesses = asynHandler(async (req, res) => {
+export const searchBusinesses = asyncHandler(async (req, res) => {
   const { location, Businessname, category } = req.query;
   const searchFilter = {};
   if (location) {
@@ -194,7 +196,7 @@ export const searchBusinesses = asynHandler(async (req, res) => {
   });
 });
 
-export const filertBusiness = asynHandler(async (req, res) => {
+export const filertBusiness = asyncHandler(async (req, res) => {
   const { listingType, category, location } = req.query;
   const filters = {};
   if (listingType) {
@@ -220,7 +222,7 @@ export const filertBusiness = asynHandler(async (req, res) => {
     .status(200)
     .json({ success: true, count: business.length, business });
 });
-export const updateBusinessStatus = asynHandler(async (req, res) => {
+export const updateBusinessStatus = asyncHandler(async (req, res) => {
   const businessId = req.params.id;
   const business = await Businesses.findById(businessId);
   if (!business) {

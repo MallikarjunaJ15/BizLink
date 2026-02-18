@@ -11,7 +11,7 @@ import {
   searchBusinesses,
   updateBusinessStatus,
 } from "../controllers/business.controller.js";
-import { asynHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 const businessRoutes = express.Router();
 
 businessRoutes.post(
@@ -23,7 +23,7 @@ businessRoutes.post(
 businessRoutes.get(
   "/business/:id",
   isAuthenticated,
-  asynHandler(getBusinessById),
+  asyncHandler(getBusinessById),
 );
 businessRoutes.post(
   "/updateBusiness/:id",
@@ -35,10 +35,10 @@ businessRoutes.post(
 businessRoutes.delete(
   "/deleteBusiness/:id",
   isAuthenticated,
-  asynHandler(deleteBusinessById),
+  asyncHandler(deleteBusinessById),
 );
-businessRoutes.get("/all", isAuthenticated, asynHandler(getAllBusiness));
-businessRoutes.get("/search", isAuthenticated, asynHandler(searchBusinesses));
-businessRoutes.get("/filter", asynHandler(filertBusiness));
-businessRoutes.patch("/updateStatus/:id", asynHandler(updateBusinessStatus));
+businessRoutes.get("/all", isAuthenticated, asyncHandler(getAllBusiness));
+businessRoutes.get("/search", isAuthenticated, asyncHandler(searchBusinesses));
+businessRoutes.get("/filter", asyncHandler(filertBusiness));
+businessRoutes.patch("/updateStatus/:id", asyncHandler(updateBusinessStatus));
 export default businessRoutes;

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft,
   MapPin,
@@ -19,6 +19,7 @@ import {
   Delete,
   Trash,
   Hand,
+  Video,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -29,12 +30,14 @@ import {
 } from "@/api/BusinessApi";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
+import RequestVideoCallModal from "@/components/RequestAVideoCall";
 
 const BusinessDescription = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useSelector((store) => store.auth.user);
   const { data, isLoading, error } = useGetBusinessByIdQuery(id);
+  const [showVideoCallModal, setShowVideoCallModal] = useState(false);
   const [
     updateStatus,
     { isLoading: updateStatusIsLoading, isSuccess: updateStatusSuccess },
@@ -117,6 +120,12 @@ const BusinessDescription = () => {
     }
   };
 
+
+
+  const handleVideoCallRequest = (data) => {
+    console.log("Video call request data:", data);
+    setShowVideoCallModal(false);
+  };
   return (
     <div className="min-h-screen bg-[#edf2f4] font-display">
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-200 ">
@@ -284,9 +293,12 @@ const BusinessDescription = () => {
 
             {!isOwner ? (
               <div className="flex flex-col sm:flex-row gap-6 mt-8">
-                <button className="flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3">
-                  <Phone className="w-5 h-5" />
-                  Contact Now
+                <button
+                  onClick={()=>setShowVideoCallModal(true)}
+                  className="flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3"
+                >
+                  <Video className="w-5 h-5" />
+                  Fix a deal
                 </button>
                 <button className="flex-1 bg-white border-2 border-[#d90429] text-[#d90429] hover:bg-[#d90429] hover:text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3">
                   <Mail className="w-5 h-5" />
@@ -316,7 +328,13 @@ const BusinessDescription = () => {
                 )}
               </div>
             )}
-
+            {showVideoCallModal && (
+              <RequestVideoCallModal
+                business={business}
+                onClose={() => setShowVideoCallModal(false)}
+                onSubmit={handleVideoCallRequest}
+              />
+            )}
             <div className="mt-8 pt-8 border-t-2 border-[#8d99ae]/20">
               <div className="flex flex-wrap items-center justify-center gap-8 text-center">
                 <div className="flex items-center gap-2">
