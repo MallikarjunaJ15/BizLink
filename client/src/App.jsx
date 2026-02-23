@@ -10,6 +10,7 @@ import BusinessDescription from "./pages/BusinessDescription";
 import MyProfile from "./pages/MyProfile";
 import EditBusiness from "./pages/EditBusiness";
 import Search from "./components/Search";
+import { socket } from "./utils/socket";
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/login", element: <Login /> },
@@ -29,13 +30,19 @@ const router = createBrowserRouter([
     element: <EditBusiness />,
   },
   {
-    path:"/search",
-    element:<Search/>
-  }
+    path: "/search",
+    element: <Search />,
+  },
 ]);
 const App = () => {
   const { data, isLoading, isError } = useLoadMeQuery();
 
+  useEffect(() => {
+    socket.connect();
+    socket.on("connect", () => {
+      console.log("Connected to server with ID:", socket.id);
+    });
+  });
   if (isLoading) return <p>Loading user...</p>;
   return <RouterProvider router={router} />;
 };

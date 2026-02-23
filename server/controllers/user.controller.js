@@ -76,14 +76,19 @@ export const login = async (req, res) => {
     await generateToken(res, user._id);
     return res.status(200).json({ message: "Logged in successfully", user });
   } catch (error) {
-    res.status(500).json({ message: "Login failed", error: error.message });
+    return res.status(500).json({ message: "Login failed", error: error.message });
   }
 };
 
 export const getUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.id).populate("businesses");
-  if (!user) throw new ApiError(404, "user not found");
-  return res.status(200).json({ user });
+  try {
+    const user = await User.findById(req.id).populate("businesses");
+    if (!user) throw new ApiError(404, "user not found");
+    return res.status(200).json({ user });
+    
+  } catch (error) {
+    return res.status(500).json({message:"Login"})
+  }
 });
 
 export const logout = (req, res) => {

@@ -20,7 +20,7 @@ export const authApi = createApi({
           const result = await queryFulfilled;
           dispatch(setUser(result?.data?.user));
         } catch (error) {
-          console.log(error);
+          // console.log(error);
         }
       },
     }),
@@ -35,7 +35,7 @@ export const authApi = createApi({
           const result = await queryFulfilled;
           dispatch(setUser(result?.data?.user));
         } catch (error) {
-          console.log(error);
+          // console.log(error);
         }
       },
     }),

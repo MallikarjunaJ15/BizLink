@@ -6,8 +6,13 @@ import cookieParser from "cookie-parser";
 import userRoutes from "./routes/user.route.js";
 import businessRoutes from "./routes/business.route.js";
 import { ApiError } from "./utils/ApiError.js";
+import { Server } from "socket.io";
+import { createServer } from "http";
+
 dotenv.config({});
 const app = express();
+const server = createServer(app);
+const io = new Server(server);
 app.use(cookieParser());
 app.use(express.json());
 const port = process.env.PORT;
@@ -38,7 +43,11 @@ app.use((err, req, res, next) => {
     success: false,
   });
 });
-app.listen(port, () => {
+
+io.on("connection", (socket) => {
+  console.log("connected", socket.id);
+});
+server.listen(port, () => {
   db();
   console.log(`The server is running at http://localhost:${port}/`);
 });
