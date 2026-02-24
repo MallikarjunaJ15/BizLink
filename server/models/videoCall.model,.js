@@ -41,7 +41,7 @@ const videoCallSchemaModel = new mongoose.Schema(
     meetingType: {
       type: String,
       enum: ["FIRST_MEETING", "FOLLOW_UP"],
-      default:"FIRST_MEETING",
+      default: "FIRST_MEETING",
       required: true,
     },
 
@@ -60,6 +60,9 @@ const videoCallSchemaModel = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    buyerNotes: String,
+    ownerNotes: String,
+    cancelReason: String,
   },
   { timestamps: true },
 );
