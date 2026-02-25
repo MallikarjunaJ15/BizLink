@@ -8,7 +8,8 @@ import businessRoutes from "./routes/business.route.js";
 import { ApiError } from "./utils/ApiError.js";
 import { Server } from "socket.io";
 import { createServer } from "http";
-
+import availabilityRoutes from "./routes/availability.route.js";
+import meetingRoutes from "./routes/meeting.routes.js";
 dotenv.config({});
 const app = express();
 const server = createServer(app);
@@ -24,6 +25,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/business", businessRoutes);
+app.use("/api/v1/availability", availabilityRoutes);
+app.use("/api/v1/meeting", meetingRoutes);
 app.get("/", (req, res) => {
   res.send("connected");
 });

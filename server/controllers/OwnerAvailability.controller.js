@@ -1,8 +1,8 @@
-import { Businesses } from "../models/business.model";
-import { OwnerAvailability } from "../models/OwnerAvailability.model";
-import { Meeting } from "../models/videoCall.model,";
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
+import { Businesses } from "../models/business.model.js";
+import { OwnerAvailability } from "../models/OwnerAvailability.model.js";
+import { Meeting } from "../models/videoCall.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Set or update owner availability
 export const setAvailability = async (req, res) => {
@@ -102,7 +102,7 @@ export const getAvailableSlots = asyncHandler(async (req, res) => {
   );
 
   // Remove already booked slots
-  const bookedMeetings = await Meeting.findById({
+  const bookedMeetings = await Meeting.find({
     owner: business.owner._id,
     scheduledDate: {
       $gte: new Date(date + "T00:00:00"),

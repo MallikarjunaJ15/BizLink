@@ -68,5 +68,5 @@ const videoCallSchemaModel = new mongoose.Schema(
 );
 
 videoCallSchemaModel.index({ buyer: 1, business: 1, scheduledDate: 1 });
-videoCallSchemaModel.index9({ owner: 1, scheduledDate: 1 });
+videoCallSchemaModel.index({ owner: 1, scheduledDate: 1 });
 export const Meeting = mongoose.model("Meeting", videoCallSchemaModel);

@@ -7,7 +7,7 @@ const timeSlotsSchema = new mongoose.Schema(
     },
 
     endTime: {
-      tpe: String,
+      type: String,
       required: true,
     },
     slotDuration: {
@@ -24,7 +24,6 @@ const availabilitySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
     },
     business: {
       type: mongoose.Schema.Types.ObjectId,
@@ -51,8 +50,8 @@ const availabilitySchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
+availabilitySchema.index({ owner: 1, business: 1 }, { unique: true });
 export const OwnerAvailability = mongoose.model(
-  "OwnerAvailability ",
+  "OwnerAvailability",
   availabilitySchema,
 );

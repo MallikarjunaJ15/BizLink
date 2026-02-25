@@ -1,7 +1,7 @@
-import { Businesses } from "../models/business.model";
-import { MeetingRateLimit } from "../models/MeetingRateLimit.model";
-import { Meeting } from "../models/videoCall.model,";
-import { asyncHandler } from "../utils/asyncHandler";
+import { Businesses } from "../models/business.model.js";
+import { MeetingRateLimit } from "../models/MeetingRateLimit.model.js";
+import { Meeting } from "../models/videoCall.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { v4 as uuidv4 } from "uuid";
 import { User } from "../models/user.model.js";
 export const requestMeeting = asyncHandler(async (req, res) => {
@@ -265,13 +265,12 @@ export const getMeetingById = asyncHandler(async (req, res) => {
   try {
     const { meetingId } = req.params;
     const userId = req.user._id;
-
     const meeting = await Meeting.findById(meetingId)
       .populate("buyer", "name email profilePicture")
       .populate("owner", "name email profilePicture")
       .populate("business", "Businessname BusinessThumbnail category price");
-
-    if (!meeting) {
+       
+    if (!meeting) { 
       throw new ApiError(404, "Meeting not found");
     }
 
