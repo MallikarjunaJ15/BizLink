@@ -16,6 +16,5 @@ export const meetingApi = createApi({
       }),
       invalidatesTags: ["Meetings"],
     }),
-    
   }),
 });

@@ -34,7 +34,7 @@ export const setAvailability = async (req, res) => {
   }
 };
 
-export const getAvailability = async (req, res) => {
+export const getAvailability = async (req, res) => { 
   try {
     const { businessId } = req.params;
     const business = await Businesses.findById(businessId).populate("owner");

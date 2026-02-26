@@ -11,6 +11,7 @@ import MyProfile from "./pages/MyProfile";
 import EditBusiness from "./pages/EditBusiness";
 import Search from "./components/Search";
 import { socket } from "./utils/socket";
+import OwnerAvailabilityDashboard from "./pages/OwnerAvailabilityDashboard.jsx ";
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/login", element: <Login /> },
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
   {
     path: "/search",
     element: <Search />,
+  },
+  {
+    path: "schedule",
+    element: <OwnerAvailabilityDashboard/>,
   },
 ]);
 const App = () => {

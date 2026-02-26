@@ -26,10 +26,14 @@ import {
   icons,
   MessageCircle,
   PhoneCall,
+  Timer,
+  Calendar1,
+  TimerIcon,
+  Handshake,
 } from "lucide-react";
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const MyProfile = () => {
@@ -286,25 +290,23 @@ const MyProfile = () => {
                 : "text-[#8d99ae] hover:text-[#2b2d42] hover:bg-[#edf2f4]"
             }`}
           >
-            <Heart className="w-5 h-5" />
+            <Handshake className="w-5 h-5" />
             <span className="hidden sm:inline">Sold</span>
             <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
               {soldBusinesses.length}
             </span>
           </button>
           <button
-            onClick={() => setActiveTab("requested")}
+            onClick={() => setActiveTab("schedule")}
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold transition-all ${
-              activeTab === "requested"
+              activeTab === "schedule"
                 ? "bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white shadow-lg"
                 : "text-[#8d99ae] hover:text-[#2b2d42] hover:bg-[#edf2f4]"
             }`}
           >
             <PhoneCall className="w-5 h-5" />
-            <span className="hidden sm:inline">Requested Meetings</span>
-            <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
-              {soldBusinesses.length}
-            </span>
+
+            <span>Schedule Meeting Dates & Time</span>
           </button>
         </div>
 
@@ -395,6 +397,59 @@ const MyProfile = () => {
             )}
           </div>
         )}
+        {activeTab === "schedule" &&
+          activeBusinesses.map((biz) => (
+            <div
+              key={biz.id}
+              className="group relative bg-[#edf2f4ff] w-full border border-[#8d99ae]/20 p-6 rounded-3xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(43,45,66,0.1)] hover:-translate-y-1 mb-4"
+            >
+              <div className="absolute -inset-px bg-gradient-to-r from-[#ef233c] to-[#2b2d42] rounded-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              <div className=" flex gap-4 flex-col">
+                <div className="relative flex flex-col gap-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase tracking-widest text-[#8d99ae] font-bold">
+                        Business Entity
+                      </span>
+                      <h1 className="text-xl font-extrabold text-[#2b2d42] tracking-tight">
+                        {biz?.Businessname}
+                      </h1>
+                    </div>
+
+                    <Link
+                      to="/schedule"
+                      className="py-3 px-8 bg-[#ef233c] hover:bg-[#d90429] text-white  font-bold shadow-lg shadow-[#ef233c]/30 transition-all active:scale-95 rounded-2xl"
+                    >
+                      Schedule
+                    </Link>
+                  </div>
+
+                  <div className="h-[1px] w-full bg-[#8d99ae]/20" />
+                </div>
+                <div className="relative flex flex-col gap-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase tracking-widest text-[#8d99ae] font-bold">
+                        Business Entity
+                      </span>
+                      <h1 className="text-xl font-extrabold text-[#2b2d42] tracking-tight">
+                        {biz?.Businessname}
+                      </h1>
+                    </div>
+
+                    <Link
+                      to={"/schedule"}
+                      className="py-3 px-8 bg-[#ef233c] hover:bg-[#d90429] text-white  font-bold shadow-lg shadow-[#ef233c]/30 transition-all active:scale-95 rounded-2xl"
+                    >
+                      Schedule
+                    </Link>
+                  </div>
+
+                  <div className="h-[1px] w-full bg-[#8d99ae]/20" />
+                </div>
+              </div>
+            </div>
+          ))}
       </div>
     </div>
   );
