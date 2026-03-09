@@ -223,7 +223,7 @@ export const filertBusiness = asyncHandler(async (req, res) => {
     .json({ success: true, count: business.length, business });
 });
 export const updateBusinessStatus = asyncHandler(async (req, res) => {
-  const businessId = req.params.id;
+  const {businessId} = req.params;
   const business = await Businesses.findById(businessId);
   if (!business) {
     return res.status(404).json({

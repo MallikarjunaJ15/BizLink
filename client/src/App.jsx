@@ -35,7 +35,7 @@ const router = createBrowserRouter([
     element: <Search />,
   },
   {
-    path: "schedule",
+    path: "/schedule/:businessId",
     element: <OwnerAvailabilityDashboard/>,
   },
 ]);

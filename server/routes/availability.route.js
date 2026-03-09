@@ -8,7 +8,11 @@ import {
 } from "../controllers/OwnerAvailability.controller.js";
 
 const availabilityRoutes = express.Router();
-availabilityRoutes.post("/set", isAuthenticated, asyncHandler(setAvailability));
+availabilityRoutes.post(
+  "/set/:businessId",
+  isAuthenticated,
+  asyncHandler(setAvailability),
+);
 
 availabilityRoutes.get(
   "/:businessId",

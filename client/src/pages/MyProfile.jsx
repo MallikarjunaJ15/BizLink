@@ -41,7 +41,7 @@ const MyProfile = () => {
   const activeBusinesses = useMemo(() => {
     return user?.businesses?.filter((biz) => biz.status !== "Sold") || [];
   }, [user?.businesses]);
-
+  // console.log(activeBusinesses.map((e) => e._id));
   const soldBusinesses = useMemo(() => {
     return user?.businesses?.filter((biz) => biz.status === "Sold") || [];
   }, [user?.businesses]);
@@ -417,28 +417,7 @@ const MyProfile = () => {
                     </div>
 
                     <Link
-                      to="/schedule"
-                      className="py-3 px-8 bg-[#ef233c] hover:bg-[#d90429] text-white  font-bold shadow-lg shadow-[#ef233c]/30 transition-all active:scale-95 rounded-2xl"
-                    >
-                      Schedule
-                    </Link>
-                  </div>
-
-                  <div className="h-[1px] w-full bg-[#8d99ae]/20" />
-                </div>
-                <div className="relative flex flex-col gap-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] uppercase tracking-widest text-[#8d99ae] font-bold">
-                        Business Entity
-                      </span>
-                      <h1 className="text-xl font-extrabold text-[#2b2d42] tracking-tight">
-                        {biz?.Businessname}
-                      </h1>
-                    </div>
-
-                    <Link
-                      to={"/schedule"}
+                      to={`/schedule/${biz._id}`}
                       className="py-3 px-8 bg-[#ef233c] hover:bg-[#d90429] text-white  font-bold shadow-lg shadow-[#ef233c]/30 transition-all active:scale-95 rounded-2xl"
                     >
                       Schedule

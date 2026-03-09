@@ -7,13 +7,14 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 // Set or update owner availability
 export const setAvailability = async (req, res) => {
   try {
-    const { businessId, weekdays, timeZone, buffer } = req.body;
+    const { weekdays, timeZone, buffer } = req.body;
     const ownerId = req.user._id;
+    const { businessId } = req.params;
     const business = await Businesses.findById(businessId);
     if (!business) {
       throw new ApiError(404, "Business not found");
     }
-    const availability = await OwnerAvailability.findByIdAndUpdate(
+    const availability = await OwnerAvailability.findOneAndUpdate(
       { owner: ownerId, business: businessId },
       {
         owner: ownerId,
@@ -30,11 +31,11 @@ export const setAvailability = async (req, res) => {
       availability,
     });
   } catch (error) {
-    return res.status(500).json({ error: "Internale Server Error" });
+    return res.status(500).json({ error: error.message });
   }
 };
 
-export const getAvailability = async (req, res) => { 
+export const getAvailability = async (req, res) => {
   try {
     const { businessId } = req.params;
     const business = await Businesses.findById(businessId).populate("owner");
@@ -139,6 +140,7 @@ function generateTimeSlots(startTime, endTime, duration, buffer) {
     }
     current += buffer; // Add buffer between meetings
   }
+  return slots;
 }
 
 function parseTime(timeStr) {
