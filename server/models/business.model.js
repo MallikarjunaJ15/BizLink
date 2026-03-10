@@ -51,7 +51,7 @@ const businessesSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export const Businesses = mongoose.model("Businessess", businessesSchema);
+export const Businesses = mongoose.model("Businesses", businessesSchema);

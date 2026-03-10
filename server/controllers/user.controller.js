@@ -8,7 +8,7 @@ import { ApiError } from "../utils/ApiError.js";
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    // console.log(req.body);
+
     if (!name || !email || !password) {
       return res
         .status(400)
@@ -19,15 +19,16 @@ export const register = async (req, res) => {
         .status(400)
         .json({ message: "Password cannot exceed 12 characters" });
     }
-    const profilePicture = req.file;
-    // console.log(profilePicture);
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
-        .status(200)
-        .json({ message: "Email already exists", success: false });
+        .status(409)
+        .json({ message: "Email already exists", success: false }); 
     }
+
     let secure_url = "";
+    const profilePicture = req.file;
     if (profilePicture) {
       const buffer = await formatBufferToDataUri(profilePicture);
       const uploadResult = await uploadMedia(buffer);
@@ -36,6 +37,7 @@ export const register = async (req, res) => {
       }
       secure_url = uploadResult.secure_url;
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       name,
@@ -44,17 +46,24 @@ export const register = async (req, res) => {
       profilePicture: secure_url,
     });
 
-    await generateToken(res, user.id);
+    await generateToken(res, user._id); 
     return res
-      .status(200)
+      .status(201)
       .json({ user, message: "Account created successfully", success: true });
   } catch (error) {
-    res
+    console.error("Registration error:", error); 
+    return res
       .status(500)
       .json({ message: "Registration failed", error: error.message });
   }
 };
 
+export const getUserProfile = asyncHandler(async (req, res) => {
+  // asyncHandler already wraps in try/catch — no need for nested try/catch
+  const user = await User.findById(req.user._id).populate("businesses");
+  if (!user) throw new ApiError(404, "User not found");
+  return res.status(200).json({ user });
+});
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -76,20 +85,11 @@ export const login = async (req, res) => {
     await generateToken(res, user._id);
     return res.status(200).json({ message: "Logged in successfully", user });
   } catch (error) {
-    return res.status(500).json({ message: "Login failed", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Login failed", error: error.message });
   }
 };
-
-export const getUserProfile = asyncHandler(async (req, res) => {
-  try {
-    const user = await User.findById(req.id).populate("businesses");
-    if (!user) throw new ApiError(404, "user not found");
-    return res.status(200).json({ user });
-    
-  } catch (error) {
-    return res.status(500).json({message:"Login"})
-  }
-});
 
 export const logout = (req, res) => {
   res.cookie("token", "", {
@@ -107,7 +107,7 @@ export const logout = (req, res) => {
 
 export const editProfilePhoto = asyncHandler(async (req, res) => {
   try {
-    const user = await User.findById(req.id);
+    const user = await User.findById(req.user._id);
     const profilePicture = req.file;
     if (!profilePicture) {
       throw new ApiError(400, "No file uploaded");

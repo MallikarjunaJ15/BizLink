@@ -24,12 +24,12 @@ const userSchema = new mongoose.Schema(
     businesses: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Businessess",
+        ref: "Businesses",
       },
     ],
     savedBusinesses: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Businessess",
+      ref: "Businesses",
     },
   },
   { timestamps: true }

@@ -1,9 +1,9 @@
-import { Businesses } from "../models/business.model.js";
 import { MeetingRateLimit } from "../models/MeetingRateLimit.model.js";
 import { Meeting } from "../models/videoCall.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 import { v4 as uuidv4 } from "uuid";
-import { User } from "../models/user.model.js";
+import { Businesses } from "../models/business.model.js";
 export const requestMeeting = asyncHandler(async (req, res) => {
   try {
     const { businessId, date, startTime, endTime } = req.body;
@@ -12,30 +12,36 @@ export const requestMeeting = asyncHandler(async (req, res) => {
     if (!businessId || !date || !startTime || !endTime) {
       throw new ApiError(400, "All fields are required");
     }
+
+    // Get business
     const business = await Businesses.findById(businessId).populate("owner");
     if (!business) {
       throw new ApiError(404, "Business not found");
     }
+
     const ownerId = business.owner._id;
+
+    // Prevent self-booking
     if (buyerId.toString() === ownerId.toString()) {
       throw new ApiError(400, "You cannot book a meeting with yourself");
     }
 
-    // Rate Limit check
-    const today = new Date().setHours(0, 0, 0, 0);
-    const selectedDate = new Date().setHours(0, 0, 0, 0);
+    // ============================================
+    // RATE LIMIT CHECK (1 booking per day)
+    // ============================================
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const rateLimit = await MeetingRateLimit.findOne({
       buyer: buyerId,
       business: businessId,
     });
+
     if (rateLimit) {
-      const lastMeetingDate = new Date(rateLimit.lastMeetingDate).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      if (lastMeetingDate === today) {
+      const lastMeetingDate = new Date(rateLimit.lastMeetingDate);
+      lastMeetingDate.setHours(0, 0, 0, 0);
+
+      if (lastMeetingDate.getTime() === today.getTime()) {
         throw new ApiError(
           429,
           "You can only book one meeting per day for this business. Please try again tomorrow.",
@@ -43,8 +49,9 @@ export const requestMeeting = asyncHandler(async (req, res) => {
       }
     }
 
-    //CHECK IF SLOT IS STILL AVAILABLE
-    const schedulatedDate = new Date(date + "T" + startTime);
+    // ============================================
+    // CHECK IF SLOT IS STILL AVAILABLE
+    // ============================================
     const conflictingMeeting = await Meeting.findOne({
       owner: ownerId,
       scheduledDate: {
@@ -62,58 +69,85 @@ export const requestMeeting = asyncHandler(async (req, res) => {
       );
     }
 
+    // ============================================
+    // DETERMINE MEETING TYPE
+    // ============================================
     const previousMeetingsCount = await Meeting.countDocuments({
       buyer: buyerId,
       business: businessId,
       status: "COMPLETED",
     });
-    const isFirstMeeting = previousMeetingsCount == 0;
+
+    const isFirstMeeting = previousMeetingsCount === 0;
     const meetingType = isFirstMeeting ? "FIRST_MEETING" : "FOLLOW_UP";
+
+    console.log("🔍 Is first meeting:", isFirstMeeting);
+
+    // ============================================
+    // CREATE MEETING
+    // ============================================
+    const scheduledDate = new Date(date + "T" + startTime);
+
     const meeting = await Meeting.create({
       buyer: buyerId,
       owner: ownerId,
       business: businessId,
-      schedulatedDate: schedulatedDate,
+      scheduledDate: scheduledDate,
       startTime: startTime,
       endTime: endTime,
       duration: calculateDuration(startTime, endTime),
-      status: "COMPLETED",
+      status: "SCHEDULED",
       meetingType: meetingType,
       requiresApproval: !isFirstMeeting,
       approvalStatus: isFirstMeeting ? "ACCEPTED" : "PENDING",
       meetingId: uuidv4(),
     });
+
+    console.log("✅ Meeting created:", meeting.meetingId);
+
     // ============================================
     // UPDATE RATE LIMIT
     // ============================================
-    await MeetingRateLimit.findByIdAndUpdate(
-      { buyer: buyerId, business: businessId },
+    // ✅ FIXED: Use findOneAndUpdate, NOT findByIdAndUpdate!
+    await MeetingRateLimit.findOneAndUpdate(
+      {
+        buyer: buyerId, // Query conditions
+        business: businessId,
+      },
       {
         buyer: buyerId,
         business: businessId,
         lastMeetingDate: new Date(),
         $inc: { meetingCount: 1 },
       },
-      { upsert: true, new: true },
+      {
+        upsert: true, // Create if doesn't exist
+        new: true, // Return updated document
+      },
     );
 
-    // Populate meeting details
+    console.log("✅ Rate limit updated");
+
+    // ============================================
+    // POPULATE MEETING DETAILS
+    // ============================================
     await meeting.populate([
       { path: "buyer", select: "name email profilePicture" },
       { path: "owner", select: "name email profilePicture" },
       { path: "business", select: "Businessname BusinessThumbnail category" },
     ]);
 
-    return res.status(200).json({
-      message: isFirstMeeting
-        ? "Meeting booked successfully!"
-        : "Meeting request sent. Waiting for owner approval.",
+    return res.status(201).json({
+      // ✅ Changed to 201 (Created)
       success: true,
+      message: isFirstMeeting
+        ? "Meeting booked successfully! 🎉"
+        : "Meeting request sent. Waiting for owner approval.",
       meeting,
       isFirstMeeting,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server Error" });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -269,8 +303,8 @@ export const getMeetingById = asyncHandler(async (req, res) => {
       .populate("buyer", "name email profilePicture")
       .populate("owner", "name email profilePicture")
       .populate("business", "Businessname BusinessThumbnail category price");
-       
-    if (!meeting) { 
+
+    if (!meeting) {
       throw new ApiError(404, "Meeting not found");
     }
 

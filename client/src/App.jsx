@@ -12,6 +12,7 @@ import EditBusiness from "./pages/EditBusiness";
 import Search from "./components/Search";
 import { socket } from "./utils/socket";
 import OwnerAvailabilityDashboard from "./pages/OwnerAvailabilityDashboard.jsx ";
+import MeetingsDashboard from "./components/MeetingDashboard";
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/login", element: <Login /> },
@@ -36,12 +37,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/schedule/:businessId",
-    element: <OwnerAvailabilityDashboard/>,
+    element: <OwnerAvailabilityDashboard />,
+  },
+  {
+    path: "/meetings/dashboard",
+    element: <MeetingsDashboard />,
   },
 ]);
 const App = () => {
   const { data, isLoading, isError } = useLoadMeQuery();
-
   useEffect(() => {
     socket.connect();
     socket.on("connect", () => {

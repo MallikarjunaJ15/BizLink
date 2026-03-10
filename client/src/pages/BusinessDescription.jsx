@@ -31,6 +31,7 @@ import {
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import RequestVideoCallModal from "@/components/RequestAVideoCall";
+import { useBookMeetingMutation } from "@/api/MeetingApi";
 
 const BusinessDescription = () => {
   const { id } = useParams();
@@ -50,6 +51,20 @@ const BusinessDescription = () => {
       error: deleteBusinessError,
     },
   ] = useDeleteBusinessMutation();
+  const [
+    bookMeeting,
+    { data: bookingData, isSuccess: bookingSuccessFull, isError: bookingEror },
+  ] = useBookMeetingMutation();
+  console.log(bookingData);
+  useEffect(() => {
+    if (bookingSuccessFull) {
+      toast.success("MeetingScheduled SuccessFully");
+      navigate("/profile");
+    }
+    if (bookingEror) {
+      toast.error("");
+    }
+  }, [bookingSuccessFull, bookingData, bookingEror]);
   useEffect(() => {
     if (deleteBusinessSuccess) {
       toast.success("Business deleted successfully!");
@@ -120,10 +135,8 @@ const BusinessDescription = () => {
     }
   };
 
-
-
-  const handleVideoCallRequest = (data) => {
-    console.log("Video call request data:", data);
+  const handleVideoCallRequest = async (data) => {
+    await bookMeeting(data);
     setShowVideoCallModal(false);
   };
   return (
@@ -294,7 +307,7 @@ const BusinessDescription = () => {
             {!isOwner ? (
               <div className="flex flex-col sm:flex-row gap-6 mt-8">
                 <button
-                  onClick={()=>setShowVideoCallModal(true)}
+                  onClick={() => setShowVideoCallModal(true)}
                   className="flex-1 bg-[#d90429] hover:bg-[#ef233c] text-[#edf2f4] py-4 px-8 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3"
                 >
                   <Video className="w-5 h-5" />

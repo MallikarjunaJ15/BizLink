@@ -60,96 +60,137 @@ export const getAvailability = async (req, res) => {
       availability,
     });
   } catch (error) {
-    return res.status(500).json({ error: "Internale Server Error" });
+    return res.status(500).json({ error: error.message });
   }
 };
 
 export const getAvailableSlots = asyncHandler(async (req, res) => {
-  const { businessId, date } = req.query;
+  try {
+    const { businessId, date } = req.query;
+    // console.log("🔍 businessId:", businessId);
+    // console.log("🔍 typeof:", typeof businessId);
+    // console.log("🔍 req.params:", req.params);
+    // console.log("🔍 req.query:", req.query);
+    if (!businessId || !date) {
+      throw new ApiError(400, "Business ID and date are required");
+    }
 
-  const business = await Businesses.findById(businessId).populate("owner");
-  if (!business) {
-    throw new ApiError(404, "Business not found");
-  }
+    const business = await Businesses.findById(businessId).populate("owner");
+    if (!business) {
+      throw new ApiError(404, "Business not found");
+    }
+    // Get owner's availability for this business
+    const availability = await OwnerAvailability.findOne({
+      owner: business.owner._id,
+      business: businessId,
+    });
+    if (!availability) {
+      return res.status(200).json({
+        success: true,
+        date,
+        slots: [],
+        message: "Owner has not set availability yet",
+      });
+    }
 
-  const availability = await OwnerAvailability.findOne({
-    owner: business.owner._id,
-    business: businessId,
-  });
+    // Get day of week (monday, tuesday, etc.)
+    const targetDate = new Date(date);
 
-  if (!availability) {
+    const dayName = targetDate
+      .toLocaleDateString("en-US", {
+        weekday: "long", // Returns "Monday", "Tuesday", etc.
+      })
+      .toLowerCase(); // Convert to "monday", "tuesday", etc.
+
+    const dayAvailability = availability.weekdays[dayName];
+
+    // Check if owner is available on this day
+    if (!dayAvailability || !dayAvailability.startTime) {
+      return res.status(200).json({
+        success: true,
+        date,
+        dayOfWeek: dayName,
+        slots: [],
+        message: `Owner is not available on ${dayName}s`,
+      });
+    }
+
+    // Generate all possible time slots for this day
+    const allSlots = generateTimeSlots(
+      dayAvailability.startTime,
+      dayAvailability.endTime,
+      dayAvailability.slotDuration,
+      availability.buffer,
+    );
+
+    // Get already booked meetings for this date
+    const startOfDay = new Date(date + "T00:00:00");
+    const endOfDay = new Date(date + "T23:59:59");
+
+    const bookedMeetings = await Meeting.find({
+      owner: business.owner._id,
+      scheduledDate: {
+        $gte: startOfDay,
+        $lt: endOfDay,
+      },
+      status: "SCHEDULED",
+    });
+
+    // Filter out booked slots
+    const bookedTimes = bookedMeetings.map((m) => m.startTime);
+    const availableSlots = allSlots.filter(
+      (slot) => !bookedTimes.includes(slot.startTime),
+    );
+
     return res.status(200).json({
       success: true,
-      slots: [],
+      date,
+      dayOfWeek: dayName,
+      ownerAvailability: {
+        startTime: dayAvailability.startTime,
+        endTime: dayAvailability.endTime,
+        slotDuration: dayAvailability.slotDuration,
+      },
+      totalSlots: allSlots.length,
+      bookedSlots: bookedTimes.length,
+      availableSlots: availableSlots.length,
+      slots: availableSlots,
     });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
-  const targetDate = new Date(date);
-  const dayName = targetDate.toLocaleDateString("en-us", {
-    weekday: "lowercase",
-  });
-  const dayAvailability = availability.weekdays[dayName];
+  // Helper: Generate time slots
+  function generateTimeSlots(startTime, endTime, duration, buffer) {
+    const slots = [];
+    let current = parseTime(startTime);
+    const end = parseTime(endTime);
 
-  if (!dayAvailability) {
-    return res.status(200).json({
-      success: true,
-      slots: [],
-    });
-  }
-  const slots = generateTimeSlots(
-    dayAvailability.startTime,
-    dayAvailability.endTime,
-    dayAvailability.slotDuration,
-    availability.buffer,
-  );
+    while (current + duration <= end) {
+      const slotStart = formatTime(current);
+      const slotEnd = formatTime(current + duration);
 
-  // Remove already booked slots
-  const bookedMeetings = await Meeting.find({
-    owner: business.owner._id,
-    scheduledDate: {
-      $gte: new Date(date + "T00:00:00"),
-      $lt: new Date(date + "T23:59:59"),
-    },
-    status: "SCHEDULED",
-  });
-  const bookedTimes = bookedMeetings.map((m) => m.startTime);
-  const availableSlots = slots.filter(
-    (slots) => !bookedTimes.includes(slots.startTime),
-  );
-  return res.status(200).json({
-    success: true,
-    date,
-    slots: availableSlots,
-  });
-});
-
-// Helper: Generate time slots
-function generateTimeSlots(startTime, endTime, duration, buffer) {
-  const slots = [];
-  let current = parseTime(startTime);
-  const end = parseTime(endTime);
-  while (current < end) {
-    const slotStart = formatTime(current);
-    current += duration;
-    const slotEnd = formatTime(current);
-    if (current <= end) {
       slots.push({
         startTime: slotStart,
         endTime: slotEnd,
-        available: true,
+        duration: duration,
       });
+
+      current += duration + buffer; // Add duration + buffer
     }
-    current += buffer; // Add buffer between meetings
+
+    return slots;
   }
-  return slots;
-}
 
-function parseTime(timeStr) {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return hours * 60 + minutes;
-}
+  // Helper: Parse time string to minutes (e.g., "09:00" -> 540)
+  function parseTime(timeStr) {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return hours * 60 + minutes;
+  }
 
-function formatTime(minutes) {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
-}
+  // Helper: Format minutes to time string (e.g., 540 -> "09:00")
+  function formatTime(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+  }
+});

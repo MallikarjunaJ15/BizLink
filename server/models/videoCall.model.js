@@ -53,7 +53,7 @@ const videoCallSchemaModel = new mongoose.Schema(
     approvalStatus: {
       type: String,
       enum: ["PENDING", "ACCEPTED", "REJECTED"],
-      default: null,
+      default: "PENDING",
     },
     meetingId: {
       type: String,

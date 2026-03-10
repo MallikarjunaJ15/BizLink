@@ -1,5 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 const meetingUrl = import.meta.env.VITE_MEETING_URL;
+console.log(meetingUrl);
 export const meetingApi = createApi({
   reducerPath: "meetingApi",
   baseQuery: fetchBaseQuery({
@@ -18,3 +19,4 @@ export const meetingApi = createApi({
     }),
   }),
 });
+export const { useBookMeetingMutation } = meetingApi;

@@ -21,8 +21,15 @@ export const availabilityApi = createApi({
       query: (businessId) => `/${businessId}`,
       providesTags: ["Availability"],
     }),
+    getAvailableSlots: builder.query({
+      query: ({ businessId, date }) =>
+        `/availableSlots?businessId=${businessId}&date=${date}`,
+    }),
   }),
 });
 
-export const { useGetAvailabilityQuery, useSetAvailabilityMutation } =
-  availabilityApi;
+export const {
+  useGetAvailabilityQuery,
+  useSetAvailabilityMutation,
+  useGetAvailableSlotsQuery,
+} = availabilityApi;
