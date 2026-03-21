@@ -37,7 +37,7 @@ const Step4ReviewSubmit = ({ formData, prev }) => {
     fd.append("phoneNumber", formData.phoneNumber);
     fd.append("listingType", formData.listingType);
     registerBusiness(fd);
-    console.log(formData);
+    // console.log(formData);
   };
 
   useEffect(() => {

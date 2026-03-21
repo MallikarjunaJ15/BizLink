@@ -1,7 +1,17 @@
-
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Loader2, Mail, Lock, ArrowRight, CheckCircle2, Shield, Users, TrendingUp } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  Mail,
+  Lock,
+  ArrowRight,
+  CheckCircle2,
+  Shield,
+  Users,
+  TrendingUp,
+} from "lucide-react";
 import { useLoginUserMutation } from "@/api/authApi";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -16,15 +26,18 @@ const Login = () => {
 
   const handleInputChange = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
-    setErrors(""); 
+    setErrors("");
   };
 
-  const [loginUser, { data, error, isLoading, isSuccess }] = useLoginUserMutation();
+  const [loginUser, { data, error, isLoading, isSuccess }] =
+    useLoginUserMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("[handleSubmit] fired, input:", input);
     try {
-     await loginUser(input).unwrap();
+     const result= await loginUser(input).unwrap();
+      console.log("[handleSubmit] success:", result);
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -35,7 +48,9 @@ const Login = () => {
       navigate("/");
     }
     if (error) {
-      setErrors(error?.data?.message || "Either the password or email is incorrect");
+      setErrors(
+        error?.data?.message || "Either the password or email is incorrect",
+      );
     }
   }, [isSuccess, error, navigate]);
 
@@ -67,7 +82,10 @@ const Login = () => {
         <div className="relative z-10 space-y-8">
           <div>
             <h2 className="text-5xl font-bold text-white mb-4 leading-tight">
-              Welcome Back to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d90429] to-[#ef233c]">BizLink</span>
+              Welcome Back to{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d90429] to-[#ef233c]">
+                BizLink
+              </span>
             </h2>
             <p className="text-xl text-[#edf2f4]/80">
               Connect with business owners directly. No middlemen, no hassle.
@@ -79,7 +97,10 @@ const Login = () => {
             {features.map((feature, idx) => {
               const Icon = feature.icon;
               return (
-                <div key={idx} className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div
+                  key={idx}
+                  className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20"
+                >
                   <div className="bg-gradient-to-br from-[#d90429] to-[#ef233c] p-2 rounded-lg shrink-0">
                     <Icon className="w-5 h-5 text-white" />
                   </div>
@@ -128,8 +149,12 @@ const Login = () => {
           {/* Form Card */}
           <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-[#8d99ae]/10">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-[#2b2d42] mb-2">Sign In</h2>
-              <p className="text-[#8d99ae]">Enter your credentials to access your account</p>
+              <h2 className="text-3xl font-bold text-[#2b2d42] mb-2">
+                Sign In
+              </h2>
+              <p className="text-[#8d99ae]">
+                Enter your credentials to access your account
+              </p>
             </div>
 
             {/* Error Message */}
@@ -181,12 +206,14 @@ const Login = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8d99ae] hover:text-[#2b2d42] transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
-
-          
 
               {/* Submit Button */}
               <button
@@ -214,7 +241,9 @@ const Login = () => {
                 <div className="w-full border-t-2 border-[#8d99ae]/20"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-[#8d99ae] font-medium">or</span>
+                <span className="px-4 bg-white text-[#8d99ae] font-medium">
+                  or
+                </span>
               </div>
             </div>
 

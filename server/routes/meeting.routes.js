@@ -3,8 +3,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   cancelMeeting,
   completeMeeting,
-  geetUserMeeting,
   getMeetingById,
+  getUserMeeting,
   handleMeetingApproval,
   requestMeeting,
 } from "../controllers/meeting.controller.js";
@@ -14,7 +14,7 @@ meetingRoutes.post("/book", isAuthenticated, asyncHandler(requestMeeting));
 meetingRoutes.get(
   "/my-meetings",
   isAuthenticated,
-  asyncHandler(geetUserMeeting),
+  asyncHandler(getUserMeeting),
 );
 meetingRoutes.patch(
   "/:meetingId/approval",

@@ -24,7 +24,7 @@ export const register = async (req, res) => {
     if (existingUser) {
       return res
         .status(409)
-        .json({ message: "Email already exists", success: false }); 
+        .json({ message: "Email already exists", success: false });
     }
 
     let secure_url = "";
@@ -46,12 +46,12 @@ export const register = async (req, res) => {
       profilePicture: secure_url,
     });
 
-    await generateToken(res, user._id); 
+    await generateToken(res, user._id);
     return res
       .status(201)
       .json({ user, message: "Account created successfully", success: true });
   } catch (error) {
-    console.error("Registration error:", error); 
+    console.error("Registration error:", error);
     return res
       .status(500)
       .json({ message: "Registration failed", error: error.message });

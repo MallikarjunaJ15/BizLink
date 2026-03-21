@@ -17,6 +17,26 @@ export const meetingApi = createApi({
       }),
       invalidatesTags: ["Meetings"],
     }),
+    getUserMeetings: builder.query({
+      query: (filter) => `/my-meetings?filter=${filter || ""}`,
+      providesTags: ["Meetings"],
+    }),
+    handleApproval: builder.mutation({
+      query: ({ meetingId, action, reason }) => ({
+        url: `/${meetingId}/approval`,
+        method: "PATCH",
+        body: { action, reason },
+      }),
+      invalidatesTags: ["Meetings"],
+    }),
+    cancelMeeting: builder.mutation({
+      query: ({ meetingId, reason }) => ({
+        url: `/${meetingId}/cancel`,
+        method: "PATCH",
+        body: { reason },
+      }),
+      invalidatesTags: ["Meetings"],
+    }),
   }),
 });
-export const { useBookMeetingMutation } = meetingApi;
+export const { useBookMeetingMutation, useGetUserMeetingsQuery ,useHandleApprovalMutation,useCancelMeetingMutation} = meetingApi;

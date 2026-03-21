@@ -45,3 +45,115 @@ git pull # Pull latest from remote
 git reset HEAD <file> # Unstage a file
 git reset --soft HEAD~1 # Undo last commit (keeps changes)
 git restore <file> # Discard changes in file
+
+// api/MeetingApi.js
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+const MEETING_API = "http://localhost:5000/api/v1/meetings";
+const AVAILABILITY_API = "http://localhost:5000/api/v1/availability";
+
+export const meetingApi = createApi({
+  reducerPath: "meetingApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: MEETING_API,
+    credentials: "include",
+  }),
+  tagTypes: ["Meetings"],
+  endpoints: (builder) => ({
+    // Book a meeting
+    bookMeeting: builder.mutation({
+      query: (data) => ({
+        url: "/book",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Meetings"],
+    }),
+
+    // Get user's meetings
+    getUserMeetings: builder.query({
+      query: (filter) => `/my-meetings?filter=${filter || ''}`,
+      providesTags: ["Meetings"],
+    }),
+
+    // Get meeting by ID
+    getMeetingById: builder.query({
+      query: (id) => `/${id}`,
+    }),
+
+    // Approve/Reject meeting
+    handleApproval: builder.mutation({
+      query: ({ meetingId, action, reason }) => ({
+        url: `/${meetingId}/approval`,
+        method: "PATCH",
+        body: { action, reason },
+      }),
+      invalidatesTags: ["Meetings"],
+    }),
+
+    // Cancel meeting
+    cancelMeeting: builder.mutation({
+      query: ({ meetingId, reason }) => ({
+        url: `/${meetingId}/cancel`,
+        method: "PATCH",
+        body: { reason },
+      }),
+      invalidatesTags: ["Meetings"],
+    }),
+
+    // Complete meeting
+    completeMeeting: builder.mutation({
+      query: (meetingId) => ({
+        url: `/${meetingId}/complete`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Meetings"],
+    }),
+  }),
+});
+
+export const availabilityApi = createApi({
+  reducerPath: "availabilityApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: AVAILABILITY_API,
+    credentials: "include",
+  }),
+  tagTypes: ["Availability"],
+  endpoints: (builder) => ({
+    // Set availability
+    setAvailability: builder.mutation({
+      query: (data) => ({
+        url: "/set",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Availability"],
+    }),
+
+    // Get availability
+    getAvailability: builder.query({
+      query: (businessId) => `/${businessId}`,
+      providesTags: ["Availability"],
+    }),
+
+    // Get available slots
+    getAvailableSlots: builder.query({
+      query: ({ businessId, date }) => `/slots?businessId=${businessId}&date=${date}`,
+    }),
+  }),
+});
+
+export const {
+  useBookMeetingMutation,
+  useGetUserMeetingsQuery,
+  useGetMeetingByIdQuery,
+  useHandleApprovalMutation,
+  useCancelMeetingMutation,
+  useCompleteMeetingMutation,
+} = meetingApi;
+
+export const {
+  useSetAvailabilityMutation,
+  useGetAvailabilityQuery,
+  useGetAvailableSlotsQuery,
+} = availabilityApi;

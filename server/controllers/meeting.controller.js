@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { v4 as uuidv4 } from "uuid";
 import { Businesses } from "../models/business.model.js";
+import { io } from "../server.js";
 export const requestMeeting = asyncHandler(async (req, res) => {
   try {
     const { businessId, date, startTime, endTime } = req.body;
@@ -99,19 +100,18 @@ export const requestMeeting = asyncHandler(async (req, res) => {
       status: "SCHEDULED",
       meetingType: meetingType,
       requiresApproval: !isFirstMeeting,
-      approvalStatus: isFirstMeeting ? "ACCEPTED" : "PENDING",
+      approvalStatus: isFirstMeeting ? "PENDING" : "ACCEPTED",
       meetingId: uuidv4(),
     });
 
-    console.log("✅ Meeting created:", meeting.meetingId);
+    // console.log("✅ Meeting created:", meeting.meetingId);
 
     // ============================================
     // UPDATE RATE LIMIT
     // ============================================
-    // ✅ FIXED: Use findOneAndUpdate, NOT findByIdAndUpdate!
     await MeetingRateLimit.findOneAndUpdate(
       {
-        buyer: buyerId, // Query conditions
+        buyer: buyerId,
         business: businessId,
       },
       {
@@ -126,8 +126,6 @@ export const requestMeeting = asyncHandler(async (req, res) => {
       },
     );
 
-    console.log("✅ Rate limit updated");
-
     // ============================================
     // POPULATE MEETING DETAILS
     // ============================================
@@ -137,8 +135,17 @@ export const requestMeeting = asyncHandler(async (req, res) => {
       { path: "business", select: "Businessname BusinessThumbnail category" },
     ]);
 
+    io.emit("send:notification", {
+      recipientId: ownerId.toString(),
+      notification: {
+        type: "MEETING_REQUEST",
+        title: "New Meeting Request",
+        message: `${meeting.buyer.name} request a meeting for ${business.Businessname}`,
+        meetingId: meeting.id,
+        timestamp: new Date(),
+      },
+    });
     return res.status(201).json({
-      // ✅ Changed to 201 (Created)
       success: true,
       message: isFirstMeeting
         ? "Meeting booked successfully! 🎉"
@@ -151,91 +158,107 @@ export const requestMeeting = asyncHandler(async (req, res) => {
   }
 });
 
-export const geetUserMeeting = asyncHandler(async (req, res) => {
+export const getUserMeeting = asyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
     const { filter } = req.query;
+    const now = new Date();
     let query = {
       $or: [{ buyer: userId }, { owner: userId }],
     };
-    const now = new Date();
     if (filter === "upcoming") {
-      query.schedulatedDate = { $gte: now };
-      query.status = "SCHEDULED";
-    } else if (filter == "past") {
-      query.$or = [
-        { scheduledDate: { $lt: now } },
-        { status: { $in: ["COMPLETED", "CANCELLED", "NO_SHOW"] } },
+      query.scheduledDate = { $gte: now };
+      query.approvalStatus = "ACCEPTED";
+    } else if (filter === "past") {
+      query.$and = [
+        { $or: [{ buyer: userId }, { owner: userId }] },
+        {
+          $or: [
+            { scheduledDate: { $lt: now } },
+            { status: { $in: ["COMPLETED", "CANCELLED", "NO_SHOW"] } },
+          ],
+        },
       ];
+      delete query.$or;
     } else if (filter === "pending") {
       query.approvalStatus = "PENDING";
       query.requiresApproval = true;
     }
 
-    const meetings = (await Meeting.find(query))
+    const meetings = await Meeting.find(query)
       .populate("buyer", "name email profilePicture")
       .populate("owner", "name email profilePicture")
       .populate("business", "Businessname BusinessThumbnail category")
       .sort({ scheduledDate: 1 });
-    return res.status(200).json({
-      success: true,
-      count: meetings.length,
-      meetings,
-    });
+
+    return res
+      .status(200)
+      .json({ success: true, count: meetings.length, meetings });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server Error" });
+    console.error("[getUserMeeting] error:", error.stack);
+    return res.status(500).json({ error: error.message });
   }
 });
-
 export const handleMeetingApproval = asyncHandler(async (req, res) => {
-  try {
-    const { meetingId } = req.params;
-    const { action, reason } = req.body;
-    const ownerId = req.user._id;
-    if (!["action", "reject"].includes(action)) {
-      throw new ApiError(400, "Action must be 'accept' or 'reject'");
-    }
-    const meeting = await Meeting.find(meetingId)
-      .populate("buyer", "name email")
-      .populate("business", "Businessname");
-
-    if (!meeting) {
-      throw new ApiError(404, "Meeting not found");
-    }
-
-    if (meeting.owner.toString() !== ownerId.toString()) {
-      throw new ApiError(403, "You are not authorized to approve this meeting");
-    }
-    if (!meeting.requiresApproval) {
-      throw new ApiError(400, "This meeting doesn't require approval");
-    }
-    if (meeting.approvalStatus !== "PENDING") {
-      throw new ApiError(
-        400,
-        `Meeting has already been ${meeting.approvalStatus.toLowerCase()}`,
-      );
-    }
-    if (action == "accept") {
-      meeting.approvalStatus = "ACCEPTED";
-      meeting.status = "SCHEDULED";
-    } else {
-      meeting.approvalStatus = "REJECTED";
-      meeting.status = "CANCELLED";
-      meeting.cancelReason = reason || "Rejected by owner";
-    }
-
-    await meeting.save();
-    return res.status(200).json({
-      success: true,
-      message:
-        action === "accept"
-          ? "Meeting approved successfully"
-          : "Meeting rejected",
-      meeting,
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server Error" });
+  const { meetingId } = req.params;
+  const { action, reason } = req.body;
+  const ownerId = req.user._id;
+  if (!["ACCEPTED", "REJECTED"].includes(action)) {
+    throw new ApiError(400, "Action must be 'ACCEPTED' or 'REJECTED'");
   }
+
+  const meeting = await Meeting.findById(meetingId)
+    .populate("buyer", "name email")
+    .populate("business", "Businessname");
+
+  if (!meeting) {
+    throw new ApiError(404, "Meeting not found");
+  }
+
+  if (meeting.owner.toString() !== ownerId.toString()) {
+    throw new ApiError(403, "You are not authorized to approve this meeting");
+  }
+
+  if (!meeting.requiresApproval) {
+    throw new ApiError(400, "This meeting doesn't require approval");
+  }
+
+  if (meeting.approvalStatus !== "PENDING") {
+    throw new ApiError(
+      400,
+      `Meeting has already been ${meeting.approvalStatus.toLowerCase()}`,
+    );
+  }
+
+  if (action === "ACCEPTED") {
+    meeting.approvalStatus = "ACCEPTED";
+    meeting.status = "SCHEDULED";
+  } else {
+    meeting.approvalStatus = "REJECTED";
+    meeting.status = "CANCELLED";
+    meeting.cancelReason = reason || "Rejected by owner";
+  }
+
+  await meeting.save();
+  io.emit("send:notification", {
+    recipientId: meeting.buyer.toString(),
+    type: action === "ACCEPTED" ? "MEETING_APPROVED" : "MEETIG_REJECTED",
+    title: action === "ACCEPTED" ? "Meeting Approved! 🎉" : "Meeting Rejected",
+    message:
+      action === "ACCEPTED"
+        ? `Your meeting request for ${meeting.business.Businessname} has been approved!`
+        : `Your meeting request for ${meeting.business.Businessname} was rejected.`,
+    meetingId: meeting._id,
+    timestamp: new Date(),
+  });
+  return res.status(200).json({
+    success: true,
+    message:
+      action === "ACCEPTED"
+        ? "Meeting approved successfully!"
+        : "Meeting rejected",
+    meeting,
+  });
 });
 
 export const cancelMeeting = asyncHandler(async (req, res) => {

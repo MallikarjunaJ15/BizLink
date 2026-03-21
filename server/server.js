@@ -17,13 +17,14 @@ const server = createServer(app);
 const io = new Server(server);
 
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: process.env.CLIENT_URL,
   credentials: true,
 };
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); 
 app.use(express.json());
 app.use(cookieParser());
+
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/business", businessRoutes);
 app.use("/api/v1/availability", availabilityRoutes);
@@ -48,9 +49,31 @@ app.use((err, req, res, next) => {
   });
 });
 
+const onlineUsers = new Map();
+
 io.on("connection", (socket) => {
   console.log("connected", socket.id);
+  socket.on("user:join", (userId) => {
+    onlineUsers.set(userId, socket.id);
+    console.log(`User ${userId} is online`);
+  });
+  socket.on("send:notification", ({ recipientId, notification }) => {
+    const recipientSocketId = onlineUsers.get(recipientId);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("recieve:notification", notification);
+    }
+  });
+  socket.on("disconnect", () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId == socket.id) {
+        onlineUsers.delete(userId);
+        console.log(`Useer ${userId} disconnected`);
+        break;
+      }
+    }
+  });
 });
+export { io };
 server.listen(port, () => {
   db();
   console.log(`The server is running at http://localhost:${port}/`);

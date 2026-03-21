@@ -37,14 +37,15 @@ export const createBusiness = asyncHandler(async (req, res) => {
     price,
     Businessbio,
     category,
-    owner: req.id,
+    owner: req.user._id,
     address: { location, landmark, pincode },
     phoneNumber,
     listingType,
   });
-  await User.findByIdAndUpdate(req.id, {
+  await User.findByIdAndUpdate(req.user._id, {
     $push: { businesses: Business._id },
   });
+
   return res.status(200).json({
     message: "Business created successfully",
     Business,
@@ -223,7 +224,7 @@ export const filertBusiness = asyncHandler(async (req, res) => {
     .json({ success: true, count: business.length, business });
 });
 export const updateBusinessStatus = asyncHandler(async (req, res) => {
-  const {businessId} = req.params;
+  const { businessId } = req.params;
   const business = await Businesses.findById(businessId);
   if (!business) {
     return res.status(404).json({

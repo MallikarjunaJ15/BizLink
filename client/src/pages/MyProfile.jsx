@@ -30,6 +30,7 @@ import {
   Calendar1,
   TimerIcon,
   Handshake,
+  Video,
 } from "lucide-react";
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
@@ -263,8 +264,16 @@ const MyProfile = () => {
             );
           })}
         </div>
+        <div className="p-4">
+          <button
+            onClick={() => navigate("/meetings/dashboard")}
+            className="cursor-pointer flex items-center gap-2 bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+          >
+            <Video className="w-5 h-5" />
+            My Meetings
+          </button>
+        </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center gap-4 mb-8 bg-white rounded-2xl p-2 shadow-lg border-2 border-[#8d99ae]/10">
           <button

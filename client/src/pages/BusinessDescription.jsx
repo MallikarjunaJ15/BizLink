@@ -58,11 +58,11 @@ const BusinessDescription = () => {
   console.log(bookingData);
   useEffect(() => {
     if (bookingSuccessFull) {
-      toast.success("MeetingScheduled SuccessFully");
+      toast.success(bookingData?.message || "MeetingScheduled SuccessFully");
       navigate("/profile");
     }
     if (bookingEror) {
-      toast.error("");
+      toast.error("Internal Server Error");
     }
   }, [bookingSuccessFull, bookingData, bookingEror]);
   useEffect(() => {
@@ -86,7 +86,6 @@ const BusinessDescription = () => {
   }, [updateStatusSuccess, navigate]);
 
   const isOwner = user?._id === data?.Business?.owner?._id;
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
