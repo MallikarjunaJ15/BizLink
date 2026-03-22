@@ -30,6 +30,7 @@ const MeetingsDashboard = () => {
   const navigate = useNavigate();
   const currentUser = useSelector((store) => store.auth.user);
   const { data, isLoading, refetch } = useGetUserMeetingsQuery(filter);
+  console.log(data)
   const [handleApproval, { isLoading: approvingLoading }] =
     useHandleApprovalMutation();
   const [cancelMeeting, { isLoading: cancellingLoading }] =

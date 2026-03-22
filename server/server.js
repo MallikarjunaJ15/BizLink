@@ -14,14 +14,19 @@ dotenv.config({});
 const port = process.env.PORT;
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
-
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  },
+});
+export { io,onlineUsers };
 const corsOptions = {
   origin: process.env.CLIENT_URL,
   credentials: true,
 };
 
-app.use(cors(corsOptions)); 
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -55,25 +60,20 @@ io.on("connection", (socket) => {
   console.log("connected", socket.id);
   socket.on("user:join", (userId) => {
     onlineUsers.set(userId, socket.id);
-    console.log(`User ${userId} is online`);
-  });
-  socket.on("send:notification", ({ recipientId, notification }) => {
-    const recipientSocketId = onlineUsers.get(recipientId);
-    if (recipientSocketId) {
-      io.to(recipientSocketId).emit("recieve:notification", notification);
-    }
+    // console.log(`👤 User ${userId} is online (socket: ${socket.id})`);
+    // console.log("📊 Online users:", Array.from(onlineUsers.keys()));
   });
   socket.on("disconnect", () => {
     for (const [userId, socketId] of onlineUsers.entries()) {
       if (socketId == socket.id) {
         onlineUsers.delete(userId);
-        console.log(`Useer ${userId} disconnected`);
+        console.log(`User ${userId} disconnected`);
         break;
       }
     }
   });
 });
-export { io };
+
 server.listen(port, () => {
   db();
   console.log(`The server is running at http://localhost:${port}/`);

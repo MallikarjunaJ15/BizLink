@@ -14,7 +14,9 @@ const Notification = () => {
   useEffect(() => {
     if (!user?._id) return;
 
-    const socket = io("http://localhost:5000");
+    const socket = io(import.meta.env.VITE_SOCKET_URL, {
+      withCredentials: true,
+    });
 
     // Join with user ID
     socket.emit("user:join", user._id);
@@ -28,8 +30,8 @@ const Notification = () => {
       setUnreadCount((prev) => prev + 1);
 
       // Browser notification
-      if (Notification.permission === "granted") {
-        new Notification(notification.title, {
+      if (window.Notification.permission === "granted") {
+        new window.Notification(notification.title, {
           body: notification.message,
           icon: "/logo.png",
         });
@@ -37,8 +39,8 @@ const Notification = () => {
     });
 
     // Request browser notification permission
-    if (Notification.permission === "default") {
-      Notification.requestPermission();
+    if (window.Notification.permission === "default") {
+      window.Notification.requestPermission();
     }
 
     return () => {
@@ -50,11 +52,11 @@ const Notification = () => {
   const handleNotificationClick = (notification) => {
     // Navigate based on notification type
     if (notification.type === "MEETING_REQUEST") {
-      navigate("/meetings?tab=pending");
+      navigate("/meetings?tab=upcoming");
     } else if (notification.type === "MEETING_APPROVED") {
       navigate("/meetings?tab=upcoming");
     } else if (notification.meetingId) {
-      navigate(`/meetings`);
+      navigate(`/meetings/dashboard`);
     }
     setShowDropdown(false);
   };

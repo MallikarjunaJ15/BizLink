@@ -4,7 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { v4 as uuidv4 } from "uuid";
 import { Businesses } from "../models/business.model.js";
-import { io } from "../server.js";
+import { io, onlineUsers } from "../server.js";
 export const requestMeeting = asyncHandler(async (req, res) => {
   try {
     const { businessId, date, startTime, endTime } = req.body;
@@ -82,7 +82,7 @@ export const requestMeeting = asyncHandler(async (req, res) => {
     const isFirstMeeting = previousMeetingsCount === 0;
     const meetingType = isFirstMeeting ? "FIRST_MEETING" : "FOLLOW_UP";
 
-    console.log("🔍 Is first meeting:", isFirstMeeting);
+    // console.log("🔍 Is first meeting:", isFirstMeeting);
 
     // ============================================
     // CREATE MEETING
@@ -100,7 +100,7 @@ export const requestMeeting = asyncHandler(async (req, res) => {
       status: "SCHEDULED",
       meetingType: meetingType,
       requiresApproval: !isFirstMeeting,
-      approvalStatus: isFirstMeeting ? "PENDING" : "ACCEPTED",
+      approvalStatus: isFirstMeeting ? "ACCEPTED" : "PENDING",
       meetingId: uuidv4(),
     });
 
@@ -135,16 +135,22 @@ export const requestMeeting = asyncHandler(async (req, res) => {
       { path: "business", select: "Businessname BusinessThumbnail category" },
     ]);
 
-    io.emit("send:notification", {
-      recipientId: ownerId.toString(),
-      notification: {
+    const recipientSocketId = onlineUsers.get(ownerId.toString());
+    // console.log("📨 Sending notification to owner");
+    // console.log("Owner ID:", ownerId.toString());
+    // console.log("Owner socket ID:", recipientSocketId);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("receive:notification", {
         type: "MEETING_REQUEST",
-        title: "New Meeting Request",
-        message: `${meeting.buyer.name} request a meeting for ${business.Businessname}`,
-        meetingId: meeting.id,
+        title: isFirstMeeting
+          ? "New Meeting Request"
+          : "Follow-up Meeting Request",
+        message: `${meeting.buyer.name} requested a meeting for ${business.Businessname}`,
+        meetingId: meeting._id,
         timestamp: new Date(),
-      },
-    });
+      });
+      // console.log("✅ Notification sent to owner");
+    }
     return res.status(201).json({
       success: true,
       message: isFirstMeeting
@@ -240,17 +246,29 @@ export const handleMeetingApproval = asyncHandler(async (req, res) => {
   }
 
   await meeting.save();
-  io.emit("send:notification", {
-    recipientId: meeting.buyer.toString(),
-    type: action === "ACCEPTED" ? "MEETING_APPROVED" : "MEETIG_REJECTED",
-    title: action === "ACCEPTED" ? "Meeting Approved! 🎉" : "Meeting Rejected",
-    message:
-      action === "ACCEPTED"
-        ? `Your meeting request for ${meeting.business.Businessname} has been approved!`
-        : `Your meeting request for ${meeting.business.Businessname} was rejected.`,
-    meetingId: meeting._id,
-    timestamp: new Date(),
-  });
+  const buyerSocketId = onlineUsers.get(meeting.buyer._id.toString());
+
+  // console.log("📨 Sending approval/rejection notification to buyer");
+  // console.log("Buyer ID:", meeting.buyer._id.toString());
+  // console.log("Buyer socket ID:", buyerSocketId);
+
+  if (buyerSocketId) {
+    io.to(buyerSocketId).emit("receive:notification", {
+      type: action === "ACCEPTED" ? "MEETING_APPROVED" : "MEETING_REJECTED",
+      title:
+        action === "ACCEPTED" ? "Meeting Approved! 🎉" : "Meeting Rejected",
+      message:
+        action === "ACCEPTED"
+          ? `Your meeting request for ${meeting.business.Businessname} has been approved!`
+          : `Your meeting request for ${meeting.business.Businessname} was rejected.`,
+      meetingId: meeting._id,
+      timestamp: new Date(),
+    });
+
+    // console.log("✅ Notification sent to buyer");
+  } else {
+    console.log("⚠️ Buyer is offline, notification not delivered in real time");
+  }
   return res.status(200).json({
     success: true,
     message:
