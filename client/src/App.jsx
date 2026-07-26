@@ -12,6 +12,7 @@ import EditBusiness from "./pages/EditBusiness";
 import Search from "./components/Search";
 import OwnerAvailabilityDashboard from "./pages/OwnerAvailabilityDashboard.jsx ";
 import MeetingsDashboard from "./components/MeetingsDashboard";
+import VideoCall from "./components/VideoCall";
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/login", element: <Login /> },
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
   {
     path: "/meetings/dashboard",
     element: <MeetingsDashboard />,
+  },
+  {
+    path: "/video-call/:meetingId",
+    element: <VideoCall />,
   },
 ]);
 const App = () => {

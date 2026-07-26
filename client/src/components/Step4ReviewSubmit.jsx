@@ -42,8 +42,8 @@ const Step4ReviewSubmit = ({ formData, prev }) => {
 
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Business listed successfully 🚀");
-      navigate("/business");
+      toast.success("Business listed successfully");
+      navigate("/profile");
     }
     if (error) toast.error(error?.data?.message || "Failed to submit");
   }, [isSuccess, error]);

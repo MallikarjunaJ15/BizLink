@@ -20,7 +20,6 @@ const io = new Server(server, {
     credentials: true,
   },
 });
-export { io,onlineUsers };
 const corsOptions = {
   origin: process.env.CLIENT_URL,
   credentials: true,
@@ -60,8 +59,48 @@ io.on("connection", (socket) => {
   console.log("connected", socket.id);
   socket.on("user:join", (userId) => {
     onlineUsers.set(userId, socket.id);
-    // console.log(`👤 User ${userId} is online (socket: ${socket.id})`);
-    // console.log("📊 Online users:", Array.from(onlineUsers.keys()));
+    console.log(`👤 User ${userId} is online (socket: ${socket.id})`);
+    console.log("📊 Online users:", Array.from(onlineUsers.keys()));
+  });
+  socket.on("join-room", (meetingId) => {
+    console.log(`Socket ${socket.id} joined room ${meetingId}`);
+    const room = io.sockets.adapter.rooms.get(meetingId);
+    const size = room ? room.size : 0;
+    socket.join(meetingId);
+    if (size == 0) {
+      socket.emit("role", "caller");
+    } else {
+      socket.emit("role", "receiver");
+      socket.to(meetingId).emit("user-joined", socket.id);
+    }
+
+    console.log(`✅ Socket ${socket.id} joined room ${meetingId}`);
+  });
+  socket.on("send-offer", (data) => {
+    console.log(`offer from ${socket.id} to ${data.to}`);
+    // WHY data.to? We need to send the offer to a SPECIFIC person
+    // io.to(data.to) = send to this specific socket ID
+
+    io.to(data.to).emit("receive-offer", {
+      from: socket.id,
+      offer: data.offer,
+    });
+  });
+  socket.on("send-answer", (data) => {
+    console.log(`answer from ${socket.id} to ${data.to} `);
+
+    io.to(data.to).emit("receive-answer", {
+      from: socket.id,
+      answer: data.answer,
+    });
+  });
+  socket.on("send-ice-candidate", (data) => {
+    console.log(`ice-candidate from ${socket.id} to ${data.to} `);
+
+    io.to(data.to).emit("receive-ice-candidate", {
+      from: socket.id,
+      candidate: data.candidate,
+    });
   });
   socket.on("disconnect", () => {
     for (const [userId, socketId] of onlineUsers.entries()) {
@@ -73,6 +112,7 @@ io.on("connection", (socket) => {
     }
   });
 });
+export { io, onlineUsers };
 
 server.listen(port, () => {
   db();

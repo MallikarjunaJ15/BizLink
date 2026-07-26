@@ -195,7 +195,7 @@ const RequestVideoCallModal = ({ business, onClose, onSubmit }) => {
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {data?.slots?.map((slot, index) => (
                       <button
-                        key={index}
+                        key={slot.startTime}
                         type="button"
                         onClick={() => setSelectedSlot(slot)}
                         className={`p-3 rounded-xl font-semibold transition-all text-sm ${

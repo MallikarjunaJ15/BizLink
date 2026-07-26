@@ -24,6 +24,6 @@ const rateLimitSchema = new mongoose.Schema(
 );
 rateLimitSchema.index({ buyer: 1, business: 1 }, { unique: true });
 export const MeetingRateLimit = mongoose.model(
-  "MeetingRateLimit ",
+  "MeetingRateLimit",
   rateLimitSchema,
 );

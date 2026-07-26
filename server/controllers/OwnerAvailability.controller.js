@@ -94,8 +94,8 @@ export const getAvailableSlots = asyncHandler(async (req, res) => {
     }
 
     // Get day of week (monday, tuesday, etc.)
-    const targetDate = new Date(date);
-
+    const [year, month, day] = date.split("-").map(Number);
+    const targetDate = new Date(year, month - 1, day);
     const dayName = targetDate
       .toLocaleDateString("en-US", {
         weekday: "long", // Returns "Monday", "Tuesday", etc.
@@ -124,8 +124,8 @@ export const getAvailableSlots = asyncHandler(async (req, res) => {
     );
 
     // Get already booked meetings for this date
-    const startOfDay = new Date(date + "T00:00:00");
-    const endOfDay = new Date(date + "T23:59:59");
+    const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
 
     const bookedMeetings = await Meeting.find({
       owner: business.owner._id,
@@ -163,11 +163,13 @@ export const getAvailableSlots = asyncHandler(async (req, res) => {
   function generateTimeSlots(startTime, endTime, duration, buffer) {
     const slots = [];
     let current = parseTime(startTime);
-    const end = parseTime(endTime);
-
+    let end = parseTime(endTime);
+    if (end <= current) {
+      end += 24 * 60;
+    }
     while (current + duration <= end) {
-      const slotStart = formatTime(current);
-      const slotEnd = formatTime(current + duration);
+      const slotStart = formatTime(current % (24 * 60));
+      const slotEnd = formatTime((current + duration) % (24 * 60));
 
       slots.push({
         startTime: slotStart,
@@ -194,3 +196,10 @@ export const getAvailableSlots = asyncHandler(async (req, res) => {
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   }
 });
+
+export const deleteSlot = () => {
+  try {
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};

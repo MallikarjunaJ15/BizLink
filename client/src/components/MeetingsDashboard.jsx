@@ -30,7 +30,7 @@ const MeetingsDashboard = () => {
   const navigate = useNavigate();
   const currentUser = useSelector((store) => store.auth.user);
   const { data, isLoading, refetch } = useGetUserMeetingsQuery(filter);
-  console.log(data)
+ 
   const [handleApproval, { isLoading: approvingLoading }] =
     useHandleApprovalMutation();
   const [cancelMeeting, { isLoading: cancellingLoading }] =
@@ -76,15 +76,6 @@ const MeetingsDashboard = () => {
 
   const handleJoinMeeting = (meetingId) => {
     navigate(`/video-call/${meetingId}`);
-  };
-
-  const isJoinable = (scheduledDate, startTime) => {
-    const meetingDateTime = new Date(
-      `${scheduledDate.split("T")[0]}T${startTime}`,
-    );
-    const now = new Date();
-    const timeDiff = meetingDateTime - now;
-    return timeDiff > -60 * 60 * 1000 && timeDiff <= 15 * 60 * 1000;
   };
 
   const isOwner = (meeting) => {
@@ -147,7 +138,7 @@ const MeetingsDashboard = () => {
                 : "text-[#8d99ae] hover:bg-[#edf2f4]"
             }`}
           >
-             Past Meetings
+            Past Meetings
           </button>
         </div>
 
@@ -170,11 +161,8 @@ const MeetingsDashboard = () => {
             data.meetings.map((meeting) => {
               const userIsOwner = isOwner(meeting);
               const otherParty = getOtherPartyName(meeting);
-              const canJoin = isJoinable(
-                meeting.scheduledDate,
-                meeting.startTime,
-              );
-
+              const canJoin = meeting.canJoin;
+              const cause = meeting.cause;
               return (
                 <div
                   key={meeting._id}
@@ -286,7 +274,6 @@ const MeetingsDashboard = () => {
                         )}
                       </div>
                     </div>
-
                     {/* Right: Actions */}
                     <div className="flex flex-col gap-3 lg:min-w-[200px]">
                       {/* PENDING APPROVAL - OWNER VIEW */}
@@ -328,17 +315,24 @@ const MeetingsDashboard = () => {
 
                       {/* JOIN MEETING BUTTON - BOTH USERS */}
                       {filter === "upcoming" &&
-                        meeting.status === "SCHEDULED" &&
-                        meeting.approvalStatus === "ACCEPTED" &&
-                        canJoin && (
-                          <button
-                            onClick={() => handleJoinMeeting(meeting._id)}
-                            className="bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white py-3 px-6 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-2"
-                          >
-                            <Video className="w-5 h-5" />
-                            Join Meeting
-                          </button>
-                        )}
+                      meeting.status === "SCHEDULED" &&
+                      meeting.approvalStatus === "ACCEPTED" &&
+                      canJoin ? (
+                        <button
+                          onClick={() => handleJoinMeeting(meeting._id)}
+                          className="bg-gradient-to-r from-[#d90429] to-[#ef233c] text-white py-3 px-6 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Video className="w-5 h-5" />
+                          Join Meeting
+                        </button>
+                      ) : (
+                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-3 text-center">
+                          <Timer className="w-5 h-5 text-yellow-600 mx-auto mb-1" />
+                          <p className="text-xs font-semibold text-yellow-700">
+                            {cause}
+                          </p>
+                        </div>
+                      )}
 
                       {/* CANCEL BUTTON - BOTH USERS (for upcoming) */}
                       {filter === "upcoming" &&

@@ -87,7 +87,7 @@ export const requestMeeting = asyncHandler(async (req, res) => {
     // ============================================
     // CREATE MEETING
     // ============================================
-    const scheduledDate = new Date(date + "T" + startTime);
+    const scheduledDate = new Date(`${date}T00:00:00`);
 
     const meeting = await Meeting.create({
       buyer: buyerId,
@@ -136,9 +136,9 @@ export const requestMeeting = asyncHandler(async (req, res) => {
     ]);
 
     const recipientSocketId = onlineUsers.get(ownerId.toString());
-    // console.log("📨 Sending notification to owner");
-    // console.log("Owner ID:", ownerId.toString());
-    // console.log("Owner socket ID:", recipientSocketId);
+    console.log("📨 Sending notification to owner");
+    console.log("Owner ID:", ownerId.toString());
+    console.log("Owner socket ID:", recipientSocketId);
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("receive:notification", {
         type: "MEETING_REQUEST",
@@ -149,7 +149,7 @@ export const requestMeeting = asyncHandler(async (req, res) => {
         meetingId: meeting._id,
         timestamp: new Date(),
       });
-      // console.log("✅ Notification sent to owner");
+      console.log("✅ Notification sent to owner");
     }
     return res.status(201).json({
       success: true,
@@ -169,37 +169,73 @@ export const getUserMeeting = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const { filter } = req.query;
     const now = new Date();
-    let query = {
+
+    let baseQuery = {
       $or: [{ buyer: userId }, { owner: userId }],
     };
-    if (filter === "upcoming") {
-      query.scheduledDate = { $gte: now };
-      query.approvalStatus = "ACCEPTED";
-    } else if (filter === "past") {
-      query.$and = [
-        { $or: [{ buyer: userId }, { owner: userId }] },
-        {
-          $or: [
-            { scheduledDate: { $lt: now } },
-            { status: { $in: ["COMPLETED", "CANCELLED", "NO_SHOW"] } },
-          ],
-        },
-      ];
-      delete query.$or;
-    } else if (filter === "pending") {
-      query.approvalStatus = "PENDING";
-      query.requiresApproval = true;
-    }
-
-    const meetings = await Meeting.find(query)
+    let meetings = await Meeting.find(baseQuery)
       .populate("buyer", "name email profilePicture")
       .populate("owner", "name email profilePicture")
       .populate("business", "Businessname BusinessThumbnail category")
       .sort({ scheduledDate: 1 });
+    const withComputedTime = meetings.map((meeting) => {
+      const scheduled = new Date(meeting.scheduledDate);
 
-    return res
-      .status(200)
-      .json({ success: true, count: meetings.length, meetings });
+      const year = scheduled.getFullYear();
+      const month = scheduled.getMonth();
+      const day = scheduled.getDate();
+
+      const [startHour, startMinute] = meeting.startTime.split(":").map(Number);
+      const [endHour, endMinute] = meeting.endTime.split(":").map(Number);
+
+      const meetingStart = new Date(
+        year,
+        month,
+        day,
+        startHour,
+        startMinute,
+        0,
+      );
+      const meetingEnd = new Date(year, month, day, endHour, endMinute, 0);
+      const { canJoin, cause } = canJoinMeeting(meeting);
+      return {
+        ...meeting.toObject(),
+        _meetingStart: meetingStart,
+        _meetingEnd: meetingEnd,
+        canJoin,
+        cause,
+      };
+    });
+    if (filter == "upcoming") {
+      meetings = withComputedTime.filter(
+        (meeting) =>
+          meeting.approvalStatus === "ACCEPTED" &&
+          meeting.status === "SCHEDULED" &&
+          meeting._meetingEnd >= now,
+      );
+    } else if (filter === "pending") {
+      meetings = withComputedTime.filter(
+        (meeting) =>
+          meeting.requiresApproval === true &&
+          meeting.approvalStatus === "PENDING",
+      );
+    } else if (filter === "past") {
+      meetings = withComputedTime.filter(
+        (meeting) =>
+          meeting._meetingEnd < now ||
+          ["COMPLETED", "CANCELLED", "NO_SHOW"].includes(meeting.status),
+      );
+    } else {
+      meetings = withComputedTime;
+    }
+    const cleanedMeetings = meetings.map(
+      ({ _meetingStart, _meetingEnd, ...meeting }) => meeting,
+    );
+    return res.status(200).json({
+      success: true,
+      count: cleanedMeetings.length,
+      meetings: cleanedMeetings,
+    });
   } catch (error) {
     console.error("[getUserMeeting] error:", error.stack);
     return res.status(500).json({ error: error.message });
@@ -248,9 +284,9 @@ export const handleMeetingApproval = asyncHandler(async (req, res) => {
   await meeting.save();
   const buyerSocketId = onlineUsers.get(meeting.buyer._id.toString());
 
-  // console.log("📨 Sending approval/rejection notification to buyer");
-  // console.log("Buyer ID:", meeting.buyer._id.toString());
-  // console.log("Buyer socket ID:", buyerSocketId);
+  console.log("📨 Sending approval/rejection notification to buyer");
+  console.log("Buyer ID:", meeting.buyer._id.toString());
+  console.log("Buyer socket ID:", buyerSocketId);
 
   if (buyerSocketId) {
     io.to(buyerSocketId).emit("receive:notification", {
@@ -265,7 +301,7 @@ export const handleMeetingApproval = asyncHandler(async (req, res) => {
       timestamp: new Date(),
     });
 
-    // console.log("✅ Notification sent to buyer");
+    console.log("✅ Notification sent to buyer");
   } else {
     console.log("⚠️ Buyer is offline, notification not delivered in real time");
   }
@@ -339,7 +375,6 @@ export const completeMeeting = asyncHandler(async (req, res) => {
 export const getMeetingById = asyncHandler(async (req, res) => {
   try {
     const { meetingId } = req.params;
-    const userId = req.user._id;
     const meeting = await Meeting.findById(meetingId)
       .populate("buyer", "name email profilePicture")
       .populate("owner", "name email profilePicture")
@@ -365,6 +400,46 @@ export const getMeetingById = asyncHandler(async (req, res) => {
     return res.status(500).json({ message: "Internal server Error" });
   }
 });
+// export const canJoinMeeting = asyncHandler(async (req, res) => {
+//   const { meetingId } = req.params;
+//   const meeting = await Meeting.findById(meetingId);
+
+//   if (!meeting) {
+//     throw new ApiError(404, "Meeting not found");
+//   }
+
+//   const scheduled = new Date(meeting.scheduledDate);
+//   const year = scheduled.getFullYear();
+//   const month = scheduled.getMonth();
+//   const day = scheduled.getDate();
+//   const [startHour, startMinute] = meeting.startTime.split(":").map(Number);
+//   const [endHour, endMinute] = meeting.endTime.split(":").map(Number);
+//   const meetingStart = new Date(year, month, day, startHour, startMinute, 0);
+//   const meetingEnd = new Date(year, month, day, endHour, endMinute, 0);
+//   const now = new Date();
+
+//   let canJoin;
+//   let reason;
+
+//   const joinStart = meetingStart.getTime() - 10 * 60 * 1000;
+//   const joinDeadline = meetingEnd.getTime() + 10 * 60 * 1000;
+//   if (now.getTime() < joinStart) {
+//     const minUntil = Math.ceil((joinStart - now.getTime()) / (60 * 1000));
+//     canJoin = false;
+//     reason = `Too early -- join opens in ${minUntil} minutes`;
+//   } else if (now.getTime() > joinDeadline) {
+//     canJoin = false;
+//     reason = "Missed joining window";
+//   } else if (now.getTime() >= joinStart && now.getTime() <= joinDeadline) {
+//     canJoin = true;
+//     reason = "Join";
+//   } else if (now.getTime() > meetingEnd) {
+//     canJoin = false;
+//     reason = "Too late";
+//   }
+
+//   return res.status(200).json({ meeting, canJoin, reason });
+// });
 function calculateDuration(startTime, endTime) {
   const start = parseTime(startTime);
   const end = parseTime(endTime);
@@ -374,4 +449,33 @@ function calculateDuration(startTime, endTime) {
 function parseTime(timeStr) {
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
+}
+
+function canJoinMeeting(meeting) {
+  const scheduled = new Date(meeting.scheduledDate);
+  const year = scheduled.getFullYear();
+  const month = scheduled.getMonth();
+  const day = scheduled.getDate();
+  const [startHour, startMinute] = meeting.startTime.split(":").map(Number);
+  const [endHour, endMinute] = meeting.endTime.split(":").map(Number);
+  const meetingStart = new Date(year, month, day, startHour, startMinute, 0);
+  const meetingEnd = new Date(year, month, day, endHour, endMinute, 0);
+  const now = new Date();
+
+  let canJoin = false;
+
+  let cause = "";
+
+  const joinStart = meetingStart.getTime() - 10 * 60 * 1000;
+  const joinDeadline = meetingStart.getTime() + 10 * 60 * 1000;
+  if (now.getTime() < joinStart) {
+    const minUntil = Math.ceil((joinStart - now.getTime()) / (60 * 1000));
+    cause = `Too early -- join opens in ${minUntil} minutes`;
+  } else if (now.getTime() > joinDeadline) {
+    cause = "Missed joining window";
+  } else if (now.getTime() >= joinStart && now.getTime() <= joinDeadline) {
+    canJoin = true;
+    cause = "Join";
+  }
+  return { canJoin, cause };
 }
